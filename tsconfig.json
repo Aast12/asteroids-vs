@@ -5,12 +5,12 @@
         "sourceMap": true,
         "target": "es2015",
         "module": "ESNext",
-    
+
         // Rules for your code
         "strict": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
-        "noUnusedParameters": true,
+        "noUnusedParameters": false,
         "noUnusedLocals": false,
         "noFallthroughCasesInSwitch": true,
         "noImplicitOverride": true,
@@ -22,9 +22,10 @@
         "allowSyntheticDefaultImports": true,
         "experimentalDecorators": true,
 
+        "baseUrl": "./",
+        "paths": {
+            "@app": ["./src"]
+        }
     },
-    // Folder for your code
-    "include": [
-        "./src/**/*"
-    ]
+    "include": ["./src/**/*"]
 }

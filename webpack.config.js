@@ -64,7 +64,10 @@ module.exports = (env, argv) => {
                 '.tsx',
                 '.ts',
                 '.js'
-            ]
+            ],
+            alias: {
+                "@app": "src/"
+            },
         },
 
         plugins: [

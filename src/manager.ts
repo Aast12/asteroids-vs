@@ -1,5 +1,5 @@
 import { Application, IApplicationOptions } from '@pixi/app';
-import { DisplayObject } from '@pixi/display';
+import { Container, DisplayObject } from '@pixi/display';
 import { Ticker } from 'pixi.js';
 
 export class SceneManager {
@@ -11,15 +11,15 @@ export class SceneManager {
     private static _width: number;
     private static _height: number;
 
-    public static get width(): number {
+    static get width(): number {
         return SceneManager._width;
     }
 
-    public static get height(): number {
+    static get height(): number {
         return SceneManager._height;
     }
 
-    public static initialize(
+    static initialize(
         width: number,
         height: number,
         background: number,
@@ -42,8 +42,7 @@ export class SceneManager {
         SceneManager.app.ticker.add(SceneManager.update);
     }
 
-    public static changeScene(newScene: IScene): void {
-
+    static changeScene(newScene: IScene): void {
         if (SceneManager.currentScene) {
             SceneManager.app.stage.removeChild(SceneManager.currentScene);
             SceneManager.currentScene.destroy();
@@ -62,4 +61,13 @@ export class SceneManager {
 
 export interface IScene extends DisplayObject {
     update(deltaTime: number): void;
+}
+
+export abstract class ParentScene extends Container {
+    protected subscribeObject = ((object: DisplayObject) =>
+        this.addChild(object)).bind(this);
+}
+export interface ISceneObject {
+    update(deltaTime: number): void;
+    subscribe(subscribeCb: (object: DisplayObject) => void): void;
 }
