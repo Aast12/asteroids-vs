@@ -10,20 +10,19 @@ class Vector {
     set(x: number, y: number): Vector {
         this.x = x;
         this.y = y;
-        if (isNaN(this.x) || isNaN(this.y)) throw "FUCKED UP AT SET";
+
         return this;
     }
 
     setX(x: number): Vector {
         this.x = x;
-        if (isNaN(this.x) || isNaN(this.y)) throw "FUCKED UP AT SET X";
+
         return this;
     }
 
     setY(y: number): Vector {
         this.y = y;
 
-        if (isNaN(this.x) || isNaN(this.y)) throw "FUCKED UP AT SET Y";
         return this;
     }
 
@@ -45,7 +44,6 @@ class Vector {
 
     setLength(newLen: number): Vector {
         return this.normalize().multiplyScalar(newLen);
-        if (isNaN(this.x) || isNaN(this.y)) throw "FUCKED UP AT SETLEN";
     }
 
 
@@ -56,7 +54,6 @@ class Vector {
         this.x /= currentMag;
         this.y /= currentMag;
 
-        if (isNaN(this.x) || isNaN(this.y)) throw "FUCKED UP AT NORMALIZE";
         return this;
     }
 
@@ -70,7 +67,7 @@ class Vector {
     multiplyScalar(scalar: number): Vector {
         this.x *= scalar;
         this.y *= scalar;
-        if (isNaN(this.x) || isNaN(this.y)) throw "FUCKED UP AT MULT";
+
         return this;
     }
     
@@ -115,6 +112,19 @@ class Vector {
         const sqYDiff = Math.pow(this.y - vector.y, 2);
 
         return Math.sqrt(sqXDiff + sqYDiff);
+    }
+
+    rotate(radians: number): Vector {
+        const c = Math.cos(radians), s = Math.sin(radians);
+        
+        const vX = this.x * c - this.y * s;
+        const vY = this.x * s + this.y * c;
+        
+        return this.set(vX, vY);
+    }
+
+    angle(): number {
+     return Math.atan2(this.y, this.x);   
     }
 
     *[ Symbol.iterator ]() {

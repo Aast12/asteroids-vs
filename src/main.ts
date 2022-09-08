@@ -6,6 +6,7 @@ import { Station } from './Scenario/Station';
 export default class Scene extends ParentScene implements IScene {
     private player: Player;
     private station: Station;
+    private fieldGraphics: Graphics = new Graphics;
 
     public constructor() {
         super();
@@ -15,28 +16,29 @@ export default class Scene extends ParentScene implements IScene {
         this.station = new Station(window.screen.width / 2 - 50, window.screen.height / 2 - 50, 10)
         this.station.subscribe(this.subscribeObject);
 
-
-        this.player = new Player(10, 10);
+        this.addChild(this.fieldGraphics);
         this.getBounds()
-        this.player.setBounds(this._bounds);
-        this.player.activate();
-        this.player.subscribe(this.subscribeObject);
 
+        this.player = new Player(10, 10, this._bounds);
+        this.player.activate();
+
+        // Render graphic layers 
+        
+        this.player.subscribe(this.subscribeObject);
     }
 
     private buildFieldGraphics() {
         const width = window.screen.width / 2;
         const height = window.screen.height / 2;
-        const scene = new Graphics();
-        scene.beginFill(0xff0000);
-        scene.drawRect(
+        this.fieldGraphics.clear();
+        this.fieldGraphics.beginFill(0xff0000);
+        this.fieldGraphics.drawRect(
             window.screen.width / 2 - width / 2,
             window.screen.height / 2 - height / 2,
             width,
             height
         );
-        scene.endFill();
-        this.addChild(scene);
+        this.fieldGraphics.endFill();
     }
 
     update(deltaTime: number): void {

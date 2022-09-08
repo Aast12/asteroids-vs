@@ -12,40 +12,51 @@ export type PlayerConfig = {
 };
 
 export const defaultPlayerConfig: PlayerConfig = {
-    speed: 1,
+    speed: 5,
     health: 10,
     width: 70,
     height: 50,
 };
+
+const keyPress = (key: Key | string) => () => Keyboard.isPressed(key);
 
 export class Player implements ISceneObject {
     private graphics = new Graphics();
     private isInteractive: boolean = false;
     private config: PlayerConfig = { ...defaultPlayerConfig };
     private worldBounds?: Bounds;
-    private obstacles: Array<DisplayObject | Bounds> = [];
-    private sprites = new Array(5)
-        .fill(null)
-        .map((_) => Sprite.from('nightraiderfixed.png'));
+    private spriteSource: string = 'nightraiderfixed.png';
+    private sprites: Array<Sprite> = [];
     private container: Container;
+    private fieldWidht: number = 0;
+    private fieldHeight: number = 0;
+    private virtualPositions: Array<Vector> = [];
+    private minSpeed = 0.01;
+    private maxSpeed = 30;
+    private minVelocity = new Vector(1, 1).multiplyScalar(this.minSpeed);
+    private degDelta = (2 * Math.PI) / 100;
+    private subscribeCb: (obj: any) => void = () => {};
 
     velocity: Vector;
     direction: Vector;
     position: Vector;
     speed: number;
 
-    constructor(x: number, y: number) {
+    Input = {
+        MOVE_FORWARD: keyPress(Key.ArrowUp),
+        MOVE_BACKWARDS: keyPress(Key.ArrowDown),
+        ROTATE_LEFT: keyPress(Key.ArrowLeft),
+        ROTATE_RIGHT: keyPress(Key.ArrowRight),
+        SHOOT: keyPress(Key.ArrowDown),
+    };
+
+    constructor(x: number, y: number, worldBounds: Bounds) {
         this.position = new Vector(x, y);
-        this.velocity = new Vector(1, 1);
+        this.velocity = this.minVelocity.clone();
         this.direction = new Vector(1, 1);
         this.speed = 0;
         this.container = new Container();
-        this.sprites.forEach((sprite) => {
-            sprite.width = this.config.width;
-            sprite.height = this.config.height;
-            this.container.addChild(sprite);
-        });
-
+        this.setBounds(worldBounds);
         // this.buildGraphics();
     }
 
@@ -62,10 +73,29 @@ export class Player implements ISceneObject {
             boundsRect.height
         );
         mask.endFill();
-        // this.container.addChild(mask);
 
         this.container.mask = mask;
         this.position.set(boundsRect.x, boundsRect.y);
+
+        this.fieldWidht = bounds.maxX - bounds?.minX;
+        this.fieldHeight = bounds.maxY - bounds?.minY;
+
+        this.virtualPositions = [
+            new Vector(0, 0),
+            new Vector(this.fieldWidht, 0),
+            new Vector(-this.fieldWidht, 0),
+            new Vector(0, this.fieldHeight),
+            new Vector(0, -this.fieldHeight),
+        ];
+
+        this.sprites = this.virtualPositions.map((spritePosition) => {
+            const tmpSprite = Sprite.from(this.spriteSource);
+            tmpSprite.width = this.config.width;
+            tmpSprite.height = this.config.height;
+            this.container.addChild(tmpSprite);
+
+            return tmpSprite;
+        });
     }
 
     activate() {
@@ -87,103 +117,72 @@ export class Player implements ISceneObject {
         this.graphics.endFill();
     }
 
+    private get unitaryDirection() {
+        return this.direction.clone().normalize();
+    }
+
+    handleInput(deltaTime: number) {
+        const { Input } = this;
+        let degs = 0;
+        if (Input.ROTATE_LEFT()) degs -= this.degDelta;
+        if (Input.ROTATE_RIGHT()) degs += this.degDelta;
+
+        this.direction.rotate(degs);
+        this.velocity.rotate(degs);
+
+        if (Input.MOVE_BACKWARDS()) {
+            this.velocity.addVector(
+                this.unitaryDirection.multiplyScalar(
+                    -this.config.speed * deltaTime
+                )
+            );
+        }
+        if (Input.MOVE_FORWARD()) {
+            this.velocity.addVector(
+                this.unitaryDirection.multiplyScalar(
+                    +this.config.speed * deltaTime
+                )
+            );
+        }
+    }
+
     update(deltaTime: number): void {
         this.graphics.position.set(...this.position);
         if (!this.isInteractive) return;
 
-        let traslation = new Vector(0, 0);
-        let degs = 0;
-        let magChange = 0;
-        const degDelta = (2 * Math.PI) / 100;
-        if (Keyboard.isPressed(Key.ArrowLeft)) {
-            degs -= degDelta;
-
-            // traslation.setX(-this.config.speed * deltaTime);
-        }
-        if (Keyboard.isPressed(Key.ArrowRight)) {
-            degs += degDelta;
-            // traslation.setX(this.config.speed * deltaTime);
-        }
-        if (Keyboard.isPressed(Key.ArrowDown)) {
-            this.speed -= this.config.speed * deltaTime;
-            // traslation.setY(this.config.speed * deltaTime);
-        }
-        if (Keyboard.isPressed(Key.ArrowUp)) {
-            this.speed += this.config.speed * deltaTime;
-            // traslation.setY(-this.config.speed * deltaTime);
+        if (this.velocity.length == 0) {
+            this.velocity = this.direction
+                .clone()
+                .normalize()
+                .multiplyScalar(this.minSpeed);
         }
 
-        const c = Math.cos(degs),
-            s = Math.sin(degs);
-        // console.log('COS', c, s);
-        // console.log('VELOCITY PRE', this.velocity);
-        const vX = this.direction.x * c - this.direction.y * s;
-        const vY = this.direction.x * s + this.direction.y * c;
-        this.direction.set(vX, vY);
+        this.handleInput(deltaTime);
 
-        // console.log('VELOCITY', this.velocity);
-        // console.log(this.graphics)
+        if (this.velocity.length > this.maxSpeed) {
+            this.velocity.normalize().multiplyScalar(this.maxSpeed);
+        }
+
+        this.position.addVector(this.velocity);
 
         this.sprites.forEach((sprite) => {
             sprite.anchor.set(0.5, 0.5);
-            sprite.rotation = Math.atan2(this.direction.y, this.direction.x);
+            sprite.rotation = this.direction.angle();
         });
 
-        const speed_dir = this.speed / Math.max(1, Math.abs(this.speed));
-        // console.log(speed_dir);
-
-        this.speed = speed_dir * Math.min(Math.abs(this.speed), 5);
-
-        // console.log(this.speed);
-        this.velocity = this.direction
-            .clone()
-            .normalize()
-            .multiplyScalar(this.speed);
-
-        // this.graphics.position.set(this.position.x, this.position.y)
-        // this.velocity.addVector(traslation);
-        // this.velocity.multiplyScalar(0.5)
-        this.position.addVector(this.velocity);
-
-        if (this.worldBounds) {
-            // console.log(this.worldBounds)
-            // this.position.clamp(
-            //     new Vector(this.worldBounds.minX, this.worldBounds.minY),
-            //     new Vector(
-            //         this.worldBounds.maxX - this.config.width,
-            //         this.worldBounds.maxY - this.config.height
-            //     )
-            // );
-        }
-        const mainSpritePos = new Vector(
-            this.position.x + this.config.width / 2,
-            this.position.y + this.config.height / 2
-        );
-        const fieldWidht =
-            (this.worldBounds?.maxX ?? 0) - (this.worldBounds?.minX ?? 0);
-        const fieldHeight =
-            (this.worldBounds?.maxY ?? 0) - (this.worldBounds?.minY ?? 0);
-        const spritePositions = [
-            new Vector(0, 0),
-            new Vector(fieldWidht, 0),
-            new Vector(-fieldWidht, 0),
-            new Vector(0, fieldHeight),
-            new Vector(0, -fieldHeight),
-        ];
         this.sprites.forEach((sprite, index) => {
             const position = this.position
                 .clone()
-                .addVector(spritePositions[index]);
+                .addVector(this.virtualPositions[index]);
             sprite.position.set(...position);
-            if (this.isWithinBounds(position))  {
+            if (this.isWithinBounds(position)) {
                 this.position.set(position.x, position.y);
             }
         });
 
         this.velocity.addVector(
-            this.velocity.clone().negate().multiplyScalar(0.2)
+            this.velocity.clone().negate().multiplyScalar(0.05)
         );
-        this.speed = this.velocity.length;
     }
 
     isWithinBounds(position: Vector) {
@@ -200,5 +199,6 @@ export class Player implements ISceneObject {
     subscribe(subscribeCb: (object: DisplayObject) => void): void {
         // this.sprites.forEach(sprite => subscribeCb(sprite));
         subscribeCb(this.container);
+        this.subscribeCb = subscribeCb;
     }
 }
