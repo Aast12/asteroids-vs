@@ -3,6 +3,8 @@ import { Keyboard, KeyState } from './keyboard';
 import { IScene, ISceneObject } from './manager';
 import { Vector } from './math/Vector';
 import { Key } from 'ts-key-enum';
+import { Bullet } from './Bullet';
+import { Context } from './Context';
 
 export type PlayerConfig = {
     speed: number;
@@ -35,8 +37,12 @@ export class Player implements ISceneObject {
     private maxSpeed = 30;
     private minVelocity = new Vector(1, 1).multiplyScalar(this.minSpeed);
     private degDelta = (2 * Math.PI) / 100;
+    private bullets: Array<Bullet> = [];
+    private maxBullets = 3;
     private subscribeCb: (obj: any) => void = () => {};
+    private context: Context; 
 
+    sceneObjectId = 'player';
     velocity: Vector;
     direction: Vector;
     position: Vector;
@@ -47,17 +53,17 @@ export class Player implements ISceneObject {
         MOVE_BACKWARDS: keyPress(Key.ArrowDown),
         ROTATE_LEFT: keyPress(Key.ArrowLeft),
         ROTATE_RIGHT: keyPress(Key.ArrowRight),
-        SHOOT: keyPress(Key.ArrowDown),
+        SHOOT: keyPress(Key.Enter),
     };
 
-    constructor(x: number, y: number, worldBounds: Bounds) {
+    constructor(x: number, y: number, worldBounds: Bounds, context: Context) {
         this.position = new Vector(x, y);
         this.velocity = this.minVelocity.clone();
         this.direction = new Vector(1, 1);
         this.speed = 0;
         this.container = new Container();
+        this.context = context;
         this.setBounds(worldBounds);
-        // this.buildGraphics();
     }
 
     setBounds(bounds: Bounds) {
@@ -98,23 +104,16 @@ export class Player implements ISceneObject {
         });
     }
 
+    buildGraphics = () => {
+        return Sprite.from(this.spriteSource);
+    }
+
     activate() {
         this.isInteractive = true;
     }
 
     deactivate() {
         this.isInteractive = false;
-    }
-
-    buildGraphics() {
-        this.graphics.beginFill(0x00ff00);
-        this.graphics.drawRect(
-            this.position.x,
-            this.position.y,
-            this.config.width,
-            this.config.height
-        );
-        this.graphics.endFill();
     }
 
     private get unitaryDirection() {
@@ -143,6 +142,19 @@ export class Player implements ISceneObject {
                     +this.config.speed * deltaTime
                 )
             );
+        }
+        if (Input.SHOOT()) {
+            console.log('hit enter');
+            if (this.bullets.length != this.maxBullets) {
+                const newBullet = new Bullet(
+                    this.position.clone(),
+                    this.direction.clone()
+                );
+                console.log('push bullet', this.position);
+                newBullet.subscribe(this.subscribeCb);
+                // this.subscribeCb(newBullet);
+                this.bullets.push(newBullet);
+            }
         }
     }
 
@@ -183,6 +195,8 @@ export class Player implements ISceneObject {
         this.velocity.addVector(
             this.velocity.clone().negate().multiplyScalar(0.05)
         );
+
+        this.bullets.forEach((bullet) => bullet.update(deltaTime));
     }
 
     isWithinBounds(position: Vector) {

@@ -18,6 +18,9 @@ export class VirtualObject {
         this.position = position;
         this.worldBounds = bounds;
         this.context = context;
+
+        this.setBounds(bounds);
+        this.buildGraphics();
     }
 
     setBounds(bounds: Bounds) {
@@ -39,7 +42,7 @@ export class VirtualObject {
     buildGraphics() {
         this.virtualCopies = this.virtualPositions.map((spritePosition) => {
             const tmpSprite = this.sourceObject.buildGraphics();
-            this.context.subscribeGraphics(this.sourceObject.sceneObjectId, tmpSprite);
+            this.context.subscribeGraphics(tmpSprite);
             return tmpSprite;
         });
     }

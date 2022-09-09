@@ -64,10 +64,15 @@ export interface IScene extends DisplayObject {
 }
 
 export abstract class ParentScene extends Container {
-    protected subscribeObject = ((object: DisplayObject) =>
-        this.addChild(object)).bind(this);
+    protected subscribeObject = ((object: DisplayObject) => {
+        console.log('obj', object);
+        
+        this.addChild(object);
+    }).bind(this);
 }
 export interface ISceneObject {
+    // sceneObjectId: string
+    buildGraphics(): DisplayObject
     update(deltaTime: number): void;
     subscribe(subscribeCb: (object: DisplayObject) => void): void;
 }
