@@ -2,7 +2,7 @@ import { Container, DisplayObject } from 'pixi.js';
 import { ISceneObject } from './manager';
 
 export class Context {
-    private parentContainer: Container;
+    parentContainer: Container;
     private sceneObjects: Array<ISceneObject> = [];
     // private sceneObjects: Map<string, ISceneObject> = new Map();
     // private sceneObjectGraphics: Map<string, Array<string>> = new Map();

@@ -4,7 +4,7 @@ import { IScene, ParentScene, SceneManager } from './manager';
 import { Player } from './player';
 // import { Station } from './Scenario/Station';
 
-export default class Scene extends ParentScene implements IScene {
+export default class Scene extends Container implements IScene {
     private player: Player;
     // private station: Station;
     private fieldGraphics: Graphics = new Graphics;
@@ -26,7 +26,9 @@ export default class Scene extends ParentScene implements IScene {
 
         // Render graphic layers 
         
-        this.player.subscribe(this.subscribeObject);
+        // this.player.subscribe(this.subscribeObject);
+
+        this.addChild(this.context.parentContainer);
     }
 
     private buildFieldGraphics() {

@@ -1,4 +1,5 @@
 import { DisplayObject, Graphics } from 'pixi.js';
+import { Context } from './Context';
 import { ISceneObject } from './manager';
 import { Vector } from './math/Vector';
 
@@ -8,15 +9,20 @@ export class Bullet implements ISceneObject {
     private speed: number;
     private graphics: Graphics = new Graphics();
     private size: number = 10;
+    private context: Context;
+
 
     // sceneObjectId: string;
 
-    constructor(position: Vector, direction: Vector, speed: number = 10) {
+    constructor(position: Vector, direction: Vector, speed: number = 10, context: Context) {
         this.position = position;
         // this.position = new Vector(0, 0);
         this.direction = direction.normalize().multiplyScalar(speed);
         this.speed = speed;
         this.buildGraphics();
+        this.context = context;
+
+        this.context.subscribeGraphics(this.graphics);
     }
 
     buildGraphics() {

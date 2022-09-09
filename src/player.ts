@@ -39,7 +39,6 @@ export class Player implements ISceneObject {
     private degDelta = (2 * Math.PI) / 100;
     private bullets: Array<Bullet> = [];
     private maxBullets = 3;
-    private subscribeCb: (obj: any) => void = () => {};
     private context: Context; 
 
     sceneObjectId = 'player';
@@ -64,6 +63,9 @@ export class Player implements ISceneObject {
         this.container = new Container();
         this.context = context;
         this.setBounds(worldBounds);
+
+        this.context.subscribeSceneObject(this);
+        this.context.subscribeGraphics(this.container);
     }
 
     setBounds(bounds: Bounds) {
@@ -144,15 +146,14 @@ export class Player implements ISceneObject {
             );
         }
         if (Input.SHOOT()) {
-            console.log('hit enter');
             if (this.bullets.length != this.maxBullets) {
                 const newBullet = new Bullet(
                     this.position.clone(),
-                    this.direction.clone()
+                    this.direction.clone(),
+                    10,
+                    this.context
                 );
-                console.log('push bullet', this.position);
-                newBullet.subscribe(this.subscribeCb);
-                // this.subscribeCb(newBullet);
+                this.context.subscribeSceneObject(newBullet);
                 this.bullets.push(newBullet);
             }
         }
@@ -210,9 +211,4 @@ export class Player implements ISceneObject {
         );
     }
 
-    subscribe(subscribeCb: (object: DisplayObject) => void): void {
-        // this.sprites.forEach(sprite => subscribeCb(sprite));
-        subscribeCb(this.container);
-        this.subscribeCb = subscribeCb;
-    }
 }

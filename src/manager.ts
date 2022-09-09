@@ -74,5 +74,4 @@ export interface ISceneObject {
     // sceneObjectId: string
     buildGraphics(): DisplayObject
     update(deltaTime: number): void;
-    subscribe(subscribeCb: (object: DisplayObject) => void): void;
 }
