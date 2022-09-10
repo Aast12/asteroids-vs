@@ -123,6 +123,10 @@ class Vector {
         return this.set(vX, vY);
     }
 
+    equals(vector: Vector) {
+        return this.x == vector.x && this.y == vector.y;
+    }
+
     angle(): number {
      return Math.atan2(this.y, this.x);   
     }

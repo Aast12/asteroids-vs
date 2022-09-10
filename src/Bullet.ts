@@ -1,45 +1,73 @@
 import { DisplayObject, Graphics } from 'pixi.js';
 import { Context } from './Context';
-import { ISceneObject } from './manager';
+import { ICollidable, ISceneObject } from './Manager';
 import { Vector } from './math/Vector';
+import { VirtualObject } from './VirtualObject';
 
-export class Bullet implements ISceneObject {
-    private position: Vector;
-    private direction: Vector;
-    private speed: number;
-    private graphics: Graphics = new Graphics();
+export class Bullet implements ISceneObject, ICollidable {
+    position!: Vector;
+    private direction!: Vector;
     private size: number = 10;
-    private context: Context;
+    private context!: Context;
+    private virtualObject!: VirtualObject;
 
+    alive = false;
 
-    // sceneObjectId: string;
+    constructor(
+        position: Vector,
+        direction: Vector,
+        speed: number = 10,
+        context: Context
+    ) {
+        this.init(position, direction, speed, context);
+    }
 
-    constructor(position: Vector, direction: Vector, speed: number = 10, context: Context) {
+    onCollide = (_: ICollidable): void => {
+        this.deactivate();
+    };
+
+    getVirtualObject(): VirtualObject {
+        return this.virtualObject;
+    }
+
+    init(
+        position: Vector,
+        direction: Vector,
+        speed: number = 2,
+        context: Context
+    ) {
+        this.alive = true;
         this.position = position;
-        // this.position = new Vector(0, 0);
         this.direction = direction.normalize().multiplyScalar(speed);
-        this.speed = speed;
         this.buildGraphics();
         this.context = context;
+        this.virtualObject = new VirtualObject(this, this.position, context);
 
-        this.context.subscribeGraphics(this.graphics);
+        this.context.subscribeSceneObject(this);
+        this.context.subscribeCollidable(this);
     }
 
     buildGraphics() {
-        this.graphics.clear();
-        this.graphics.beginFill(0xffffff);
-        this.graphics.drawCircle(0, 0, this.size);
-        this.graphics.endFill();
+        const graphics = new Graphics();
+        graphics.beginFill(0xffffff);
+        graphics.drawCircle(0, 0, this.size);
+        graphics.endFill();
 
-        return this.graphics;
+        return graphics;
+    }
+
+    deactivate() {
+        this.alive = false;
+        this.context.unsubscribeSceneObject(this);
+        this.context.unsubscribeCollidable(this);
+        this.virtualObject.release();
     }
 
     update(deltaTime: number): void {
-        this.position.addVector(this.direction.multiplyScalar(deltaTime));
-        this.graphics.position.set(...this.position);
-    }
+        const deltaPos = this.direction.clone().multiplyScalar(deltaTime);
+        this.position.addVector(deltaPos);
+        this.virtualObject.move(deltaPos);
 
-    subscribe(subscribeCb: (object: DisplayObject) => void): void {
-        subscribeCb(this.graphics);
+        this.virtualObject.update();
     }
 }

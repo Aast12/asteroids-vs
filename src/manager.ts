@@ -1,6 +1,7 @@
 import { Application, IApplicationOptions } from '@pixi/app';
 import { Container, DisplayObject } from '@pixi/display';
 import { Ticker } from 'pixi.js';
+import { VirtualObject } from './VirtualObject';
 
 export class SceneManager {
     private constructor() {}
@@ -56,6 +57,7 @@ export class SceneManager {
         if (SceneManager.currentScene) {
             SceneManager.currentScene.update(deltaTime);
         }
+        
     }
 }
 
@@ -64,9 +66,7 @@ export interface IScene extends DisplayObject {
 }
 
 export abstract class ParentScene extends Container {
-    protected subscribeObject = ((object: DisplayObject) => {
-        console.log('obj', object);
-        
+    protected subscribeObject = ((object: DisplayObject) => {        
         this.addChild(object);
     }).bind(this);
 }
@@ -74,4 +74,9 @@ export interface ISceneObject {
     // sceneObjectId: string
     buildGraphics(): DisplayObject
     update(deltaTime: number): void;
+}
+
+export interface ICollidable {
+    onCollide(source: ICollidable): void
+    getVirtualObject(): VirtualObject
 }

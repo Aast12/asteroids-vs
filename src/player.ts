@@ -1,51 +1,73 @@
 import { Bounds, Container, DisplayObject, Graphics, Sprite } from 'pixi.js';
 import { Keyboard, KeyState } from './keyboard';
-import { IScene, ISceneObject } from './manager';
+import { ICollidable, IScene, ISceneObject } from './Manager';
 import { Vector } from './math/Vector';
 import { Key } from 'ts-key-enum';
 import { Bullet } from './Bullet';
 import { Context } from './Context';
+import { VirtualObject } from './VirtualObject';
 
 export type PlayerConfig = {
     speed: number;
     health: number;
     width: number;
     height: number;
+    minSpeed: number;
+    maxSpeed: number;
+    degDelta: number;
+    maxBullets: number;
+    frictionFactor: number;
+    shootDelay: number;
 };
 
 export const defaultPlayerConfig: PlayerConfig = {
     speed: 5,
-    health: 10,
+    health: 3,
     width: 70,
     height: 50,
+    minSpeed: 0.1,
+    degDelta: (2 * Math.PI) / 100,
+    maxBullets: 1,
+    maxSpeed: 5,
+    frictionFactor: 0.02,
+    shootDelay: 500,
 };
 
 const keyPress = (key: Key | string) => () => Keyboard.isPressed(key);
 
-export class Player implements ISceneObject {
-    private graphics = new Graphics();
+export class Player implements ISceneObject, ICollidable {
     private isInteractive: boolean = false;
     private config: PlayerConfig = { ...defaultPlayerConfig };
-    private worldBounds?: Bounds;
+
     private spriteSource: string = 'nightraiderfixed.png';
-    private sprites: Array<Sprite> = [];
     private container: Container;
-    private fieldWidht: number = 0;
-    private fieldHeight: number = 0;
-    private virtualPositions: Array<Vector> = [];
-    private minSpeed = 0.01;
-    private maxSpeed = 30;
-    private minVelocity = new Vector(1, 1).multiplyScalar(this.minSpeed);
-    private degDelta = (2 * Math.PI) / 100;
+
+    private minVelocity = new Vector(1, 1).multiplyScalar(this.config.minSpeed);
     private bullets: Array<Bullet> = [];
-    private maxBullets = 3;
-    private context: Context; 
+
+    private context: Context;
+    private virtualObject: VirtualObject;
 
     sceneObjectId = 'player';
     velocity: Vector;
     direction: Vector;
     position: Vector;
     speed: number;
+    lastShoot?: number;
+    health: number;
+
+    get healthTint() {
+        switch (this.health) {
+            case 3:
+                return 0xe8cd31;
+            case 2:
+                return 0xe88d31;
+            case 1:
+                return 0xff0000;
+        }
+
+        return null;
+    }
 
     Input = {
         MOVE_FORWARD: keyPress(Key.ArrowUp),
@@ -55,60 +77,54 @@ export class Player implements ISceneObject {
         SHOOT: keyPress(Key.Enter),
     };
 
-    constructor(x: number, y: number, worldBounds: Bounds, context: Context) {
+    constructor(x: number, y: number, context: Context) {
         this.position = new Vector(x, y);
         this.velocity = this.minVelocity.clone();
         this.direction = new Vector(1, 1);
         this.speed = 0;
+        this.health = this.config.health;
         this.container = new Container();
         this.context = context;
-        this.setBounds(worldBounds);
+
+        this.setBounds(this.context.bounds);
+
+        this.virtualObject = new VirtualObject(this, this.position, context);
 
         this.context.subscribeSceneObject(this);
         this.context.subscribeGraphics(this.container);
+        this.context.subscribeCollidable(this);
+    }
+
+    onCollide(source: ICollidable): void {
+        if (this.health <= 0) this.context.endGame();
+
+        this.virtualObject.updateGraphics((sprite: Sprite) => {
+            if (this.healthTint) sprite.tint = this.healthTint;
+        });
+
+        this.health--;
+    }
+
+    getVirtualObject(): VirtualObject {
+        return this.virtualObject;
     }
 
     setBounds(bounds: Bounds) {
-        this.worldBounds = bounds;
-
-        const mask = new Graphics();
-        mask.beginFill(0x00ff00, 0.2);
         const boundsRect = bounds.getRectangle();
-        mask.drawRect(
-            boundsRect.x,
-            boundsRect.y,
-            boundsRect.width,
-            boundsRect.height
+
+        this.position.set(
+            boundsRect.x + boundsRect.width / 2,
+            boundsRect.y + boundsRect.height / 2
         );
-        mask.endFill();
-
-        this.container.mask = mask;
-        this.position.set(boundsRect.x, boundsRect.y);
-
-        this.fieldWidht = bounds.maxX - bounds?.minX;
-        this.fieldHeight = bounds.maxY - bounds?.minY;
-
-        this.virtualPositions = [
-            new Vector(0, 0),
-            new Vector(this.fieldWidht, 0),
-            new Vector(-this.fieldWidht, 0),
-            new Vector(0, this.fieldHeight),
-            new Vector(0, -this.fieldHeight),
-        ];
-
-        this.sprites = this.virtualPositions.map((spritePosition) => {
-            const tmpSprite = Sprite.from(this.spriteSource);
-            tmpSprite.width = this.config.width;
-            tmpSprite.height = this.config.height;
-            this.container.addChild(tmpSprite);
-
-            return tmpSprite;
-        });
     }
 
     buildGraphics = () => {
-        return Sprite.from(this.spriteSource);
-    }
+        const tmpSprite = Sprite.from(this.spriteSource);
+        tmpSprite.width = this.config.width;
+        tmpSprite.height = this.config.height;
+
+        return tmpSprite;
+    };
 
     activate() {
         this.isInteractive = true;
@@ -125,8 +141,8 @@ export class Player implements ISceneObject {
     handleInput(deltaTime: number) {
         const { Input } = this;
         let degs = 0;
-        if (Input.ROTATE_LEFT()) degs -= this.degDelta;
-        if (Input.ROTATE_RIGHT()) degs += this.degDelta;
+        if (Input.ROTATE_LEFT()) degs -= this.config.degDelta;
+        if (Input.ROTATE_RIGHT()) degs += this.config.degDelta;
 
         this.direction.rotate(degs);
         this.velocity.rotate(degs);
@@ -146,69 +162,58 @@ export class Player implements ISceneObject {
             );
         }
         if (Input.SHOOT()) {
-            if (this.bullets.length != this.maxBullets) {
+            if (
+                !this.lastShoot ||
+                Date.now() - this.lastShoot > this.config.shootDelay
+                //this.bullets.length != this.config.maxBullets
+            ) {
                 const newBullet = new Bullet(
-                    this.position.clone(),
+                    this.position
+                        .clone()
+                        .addVector(this.direction.clone().multiplyScalar(50)),
                     this.direction.clone(),
-                    10,
+                    Math.max(this.velocity.length, this.config.speed),
                     this.context
                 );
-                this.context.subscribeSceneObject(newBullet);
+
                 this.bullets.push(newBullet);
+                this.lastShoot = Date.now();
             }
         }
     }
 
+    private bulletValidation() {
+        this.bullets = this.bullets.filter((bullet) => bullet.alive);
+    }
+
     update(deltaTime: number): void {
-        this.graphics.position.set(...this.position);
         if (!this.isInteractive) return;
 
         if (this.velocity.length == 0) {
             this.velocity = this.direction
                 .clone()
                 .normalize()
-                .multiplyScalar(this.minSpeed);
+                .multiplyScalar(this.config.minSpeed);
         }
 
         this.handleInput(deltaTime);
 
-        if (this.velocity.length > this.maxSpeed) {
-            this.velocity.normalize().multiplyScalar(this.maxSpeed);
+        if (this.velocity.length > this.config.maxSpeed) {
+            this.velocity.normalize().multiplyScalar(this.config.maxSpeed);
         }
 
         this.position.addVector(this.velocity);
-
-        this.sprites.forEach((sprite) => {
-            sprite.anchor.set(0.5, 0.5);
-            sprite.rotation = this.direction.angle();
-        });
-
-        this.sprites.forEach((sprite, index) => {
-            const position = this.position
-                .clone()
-                .addVector(this.virtualPositions[index]);
-            sprite.position.set(...position);
-            if (this.isWithinBounds(position)) {
-                this.position.set(position.x, position.y);
-            }
-        });
+        this.virtualObject.move(this.velocity);
 
         this.velocity.addVector(
-            this.velocity.clone().negate().multiplyScalar(0.05)
+            this.velocity
+                .clone()
+                .negate()
+                .multiplyScalar(this.config.frictionFactor)
         );
 
-        this.bullets.forEach((bullet) => bullet.update(deltaTime));
+        this.virtualObject.setRotation(this.direction.angle());
+        this.virtualObject.update();
+        this.bulletValidation();
     }
-
-    isWithinBounds(position: Vector) {
-        if (!this.worldBounds) return true;
-        const { minX, maxX, minY, maxY } = this.worldBounds;
-        return (
-            position.x >= minX &&
-            position.x <= maxX &&
-            position.y >= minY &&
-            position.y <= maxY
-        );
-    }
-
 }

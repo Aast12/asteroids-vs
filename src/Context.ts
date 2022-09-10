@@ -1,40 +1,99 @@
-import { Container, DisplayObject } from 'pixi.js';
-import { ISceneObject } from './manager';
+import { Bounds, Container, DisplayObject } from 'pixi.js';
+import GameScene from './Game';
+import { ICollidable, ISceneObject, SceneManager } from './Manager';
+import { Vector } from './math/Vector';
+import GameOverScene from './scenes/GameOver';
+import { VirtualObject } from './VirtualObject';
 
 export class Context {
     parentContainer: Container;
+    bounds!: Bounds;
     private sceneObjects: Array<ISceneObject> = [];
-    // private sceneObjects: Map<string, ISceneObject> = new Map();
-    // private sceneObjectGraphics: Map<string, Array<string>> = new Map();
+    private collidables: Array<ICollidable> = [];
+
+    fieldWidth = window.screen.width;
+    fieldHeight = window.screen.height;
 
     constructor() {
         this.parentContainer = new Container();
     }
 
-    subscribeSceneObject(sceneObject: ISceneObject) {
-        // if (this.sceneObjects.has(id))
-        //     throw new Error(`Scene with id ${id} already subscribed`);
-
-        // this.sceneObjects.set(id, sceneObject);
-
+    setBounds(bounds: Bounds) {
+        this.bounds = bounds;
     }
 
+    isWithinBounds(position: Vector) {
+        if (!this.bounds) return true;
+
+        const { minX, maxX, minY, maxY } = this.bounds;
+        return (
+            position.x >= minX &&
+            position.x <= maxX &&
+            position.y >= minY &&
+            position.y <= maxY
+        );
+    }
+
+    detectCollisions() {
+        this.collidables.forEach((collidableA, index) => {
+            this.collidables.slice(index + 1).forEach((collidableB) => {
+                const collision = VirtualObject.areColliding(
+                    collidableA.getVirtualObject(),
+                    collidableB.getVirtualObject()
+                );
+
+                if (collision) {
+                    collidableA.onCollide(collidableB);
+                    collidableB.onCollide(collidableA);
+                }
+            });
+        });
+    }
+
+    endGame() {
+        SceneManager.changeScene(new GameOverScene(this));
+    }
+
+    restartGame(){
+        this.parentContainer.destroy();
+        SceneManager.changeScene(new GameScene());
+    }
+
+    update(deltaTime: number) {
+        this.sceneObjects.forEach((object) => {
+            object.update(deltaTime);
+        });
+        this.detectCollisions();
+    }
+
+    subscribeCollidable = (collidable: ICollidable) => {
+        this.collidables.push(collidable);
+    };
+
+    subscribeSceneObject = (sceneObject: ISceneObject) => {
+        this.sceneObjects.push(sceneObject);
+    };
+
     subscribeGraphics = (graphics: DisplayObject) => {
-        // graphics.name = `${id}.${Date.now()}` // unique graphics id with sceneobj id
-        // const prev = this.sceneObjectGraphics.get(id) ?? []
-        // this.sceneObjectGraphics.set(id, [...prev, graphics.name]);
         this.parentContainer.addChild(graphics);
     };
 
-    update(deltaTime: number) {
-        this.sceneObjects.forEach((object) => object.update(deltaTime));
-    }
+    unsubscribeCollidable = (collidable: ICollidable) => {
+        const objIndex = this.collidables.indexOf(collidable);
+        if (objIndex > -1) {
+            this.collidables.splice(objIndex, 1);
+        }
+    };
 
-    // unsubscribeAndDestroy = (id: string) => {
-    //     this.sceneObjectGraphics.get(id)?.forEach(graphicsName => {
-    //         const graphicsObj = this.parentContainer.getChildByName(graphicsName);
-    //         const childIdx = this.parentContainer.getChildIndex(graphicsObj);
-    //         this.parentContainer.removeChildAt(childIdx);
-    //     })
-    // };
+    unsubscribeSceneObject = (sceneObject: ISceneObject) => {
+        const objIndex = this.sceneObjects.indexOf(sceneObject);
+        if (objIndex > -1) {
+            this.sceneObjects.splice(objIndex, 1);
+        }
+    };
+
+    unsubscribeGraphics = (graphics: DisplayObject) => {
+        const graphicsIndex = this.parentContainer.getChildIndex(graphics);
+        this.parentContainer.removeChildAt(graphicsIndex);
+    };
 }

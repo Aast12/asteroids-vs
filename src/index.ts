@@ -1,6 +1,6 @@
 import { Keyboard } from './keyboard';
-import { SceneManager } from './manager';
-import MainScene from './main';
+import { SceneManager } from './Manager';
+import MainScene from './Game';
 
 const mainScene = new MainScene();
 

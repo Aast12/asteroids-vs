@@ -1,31 +1,51 @@
-import { Bounds, DisplayObject, Sprite } from 'pixi.js';
+import { Bounds, Container, DisplayObject, Sprite } from 'pixi.js';
+import { Bullet } from './Bullet';
 import { Context } from './Context';
-import { ISceneObject } from './manager';
+import { ISceneObject } from './Manager';
 import { Vector } from './math/Vector';
+import { Player } from './player';
+import { isThereCollision } from './utils';
 
+type TestT = Bullet | Player;
 export class VirtualObject {
-    public static areColliding(objA: VirtualObject, objB: VirtualObject) {}
-
     private position: Vector;
     private sourceObject: ISceneObject;
-    private worldBounds: Bounds;
-    private virtualCopies: Array<DisplayObject> = [];
+    private worldBounds!: Bounds;
+    virtualCopies: Array<DisplayObject> = [];
     private virtualPositions: Array<Vector> = [];
     private context: Context;
+    private container: Container = new Container();
+    released = false;
 
-    constructor(sourceObject: ISceneObject, position: Vector, bounds: Bounds, context: Context) {
+    constructor(
+        sourceObject: ISceneObject,
+        position: Vector,
+        context: Context
+    ) {
         this.sourceObject = sourceObject;
         this.position = position;
-        this.worldBounds = bounds;
         this.context = context;
 
-        this.setBounds(bounds);
+        this.setBounds(this.context.bounds);
         this.buildGraphics();
+    }
+
+    public static areColliding(objA: VirtualObject, objB: VirtualObject) {
+        const posA = new Vector(objA.truePosition.x, objA.truePosition.y);
+        const posB = new Vector(objB.truePosition.x, objB.truePosition.y);
+        const trueA = objA.virtualCopies.find((obj) =>
+            new Vector(obj.x, obj.y).equals(posA)
+        );
+        const trueB = objB.virtualCopies.find((obj) =>
+            new Vector(obj.x, obj.y).equals(posB)
+        );
+
+        if (!trueA || !trueB) return false;
+        return isThereCollision(trueA, trueB);
     }
 
     setBounds(bounds: Bounds) {
         this.worldBounds = bounds;
-
         const boundsRect = bounds.getRectangle();
         const fieldWidht = boundsRect.width;
         const fieldHeight = boundsRect.height;
@@ -39,16 +59,26 @@ export class VirtualObject {
         ];
     }
 
+    updateGraphics(updateFn: (obj: any) => void) {
+        this.virtualCopies.forEach(updateFn);
+    }
+
     buildGraphics() {
-        this.virtualCopies = this.virtualPositions.map((spritePosition) => {
-            const tmpSprite = this.sourceObject.buildGraphics();
-            this.context.subscribeGraphics(tmpSprite);
-            return tmpSprite;
+        this.virtualCopies = this.virtualPositions.map((_) => {
+            const tmpGraphics = this.sourceObject.buildGraphics();
+            this.container.addChild(tmpGraphics);
+            return tmpGraphics;
         });
+        this.context.subscribeGraphics(this.container);
+    }
+
+    release() {
+        this.released = true;
+        this.context.unsubscribeGraphics(this.container);
     }
 
     get truePosition() {
-        return 1;
+        return this.position;
     }
 
     setRotation(radians: number) {
@@ -68,17 +98,6 @@ export class VirtualObject {
         this.position.addVector(movement);
     }
 
-    isWithinBounds(position: Vector) {
-        if (!this.worldBounds) return true;
-        const { minX, maxX, minY, maxY } = this.worldBounds;
-        return (
-            position.x >= minX &&
-            position.x <= maxX &&
-            position.y >= minY &&
-            position.y <= maxY
-        );
-    }
-
     render() {
         this.virtualCopies.forEach((object, index) => {
             const position = this.position
@@ -86,10 +105,19 @@ export class VirtualObject {
                 .addVector(this.virtualPositions[index]);
 
             object.position.set(...position);
-            if (this.isWithinBounds(position)) {
-                this.position.set(position.x, position.y);
-            }
         });
+
+        if (this.position.x < this.worldBounds.minX)
+            this.position.setX(this.worldBounds.maxX);
+
+        if (this.position.y < this.worldBounds.minY)
+            this.position.setY(this.worldBounds.maxY);
+
+        if (this.position.x > this.worldBounds.maxX)
+            this.position.setX(this.worldBounds.minX);
+
+        if (this.position.y > this.worldBounds.maxY)
+            this.position.setY(this.worldBounds.minY);
     }
 
     update() {
