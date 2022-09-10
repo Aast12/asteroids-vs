@@ -1,20 +1,17 @@
 import { Container, Graphics, Text } from 'pixi.js';
-import { Context } from 'src/Context';
-import { IScene } from 'src/Manager';
+import { Context } from '../Context';
+import { IScene } from '../Manager';
 
 export default class GameOverScene extends Container implements IScene {
-    private context: Context;
-
-    constructor(context: Context) {
+    constructor() {
         super();
-        this.context = context;
         this.buildGraphics();
     }
 
     buildGraphics() {
         const bg = new Graphics()
             .beginFill(0x000000)
-            .drawRect(0, 0, this.context.fieldWidth, this.context.fieldHeight)
+            .drawRect(0, 0, Context.fieldWidth, Context.fieldHeight)
             .endFill();
 
         this.addChild(bg);
@@ -27,9 +24,10 @@ export default class GameOverScene extends Container implements IScene {
         });
 
         endGameText.anchor.set(0.5, 0.5);
-
-        endGameText.position.x = this.context.fieldWidth / 2;
-        endGameText.position.y = this.context.fieldHeight / 2;
+        endGameText.position.x = Context.fieldWidth / 2;
+        endGameText.position.y = Context.fieldHeight / 2;
+        // endGameText.position.x = 0;
+        // endGameText.position.y = 0;
 
         const retryText = new Text('Start Over', {
             fontFamily: 'Arial',
@@ -47,7 +45,7 @@ export default class GameOverScene extends Container implements IScene {
 
         retryText.on('pointerover', () => (retryText.alpha = 0.7));
         retryText.on('pointerout', () => (retryText.alpha = 1));
-        retryText.on('pointerdown', () => this.context.restartGame());
+        retryText.on('pointerdown', () => Context.restartGame());
 
         this.addChild(endGameText);
         this.addChild(retryText);

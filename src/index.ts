@@ -1,13 +1,13 @@
-import { Keyboard } from './keyboard';
+import { Context } from './Context';
+import { Keyboard } from './Keyboard';
 import { SceneManager } from './Manager';
-import MainScene from './Game';
-
-const mainScene = new MainScene();
+import MainScene from './scenes/Game';
 
 const setup = () => {
-	Keyboard.initialize()
+    Keyboard.initialize();
+    Context.initialize(window.screen.width, window.screen.height);
     SceneManager.initialize(window.screen.width, window.screen.height, 0);
-	SceneManager.changeScene(mainScene);
+    SceneManager.changeScene(new MainScene());
 };
 
 window.onload = setup;

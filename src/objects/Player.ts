@@ -1,11 +1,11 @@
-import { Bounds, Container, DisplayObject, Graphics, Sprite } from 'pixi.js';
-import { Keyboard, KeyState } from './keyboard';
-import { ICollidable, IScene, ISceneObject } from './Manager';
-import { Vector } from './math/Vector';
+import { Bounds, Container, Rectangle, Sprite } from 'pixi.js';
+import { Keyboard } from '../Keyboard';
+import { ICollidable, ISceneObject } from '../Manager';
+import { Vector } from '../math/Vector';
 import { Key } from 'ts-key-enum';
 import { Bullet } from './Bullet';
-import { Context } from './Context';
-import { VirtualObject } from './VirtualObject';
+import { Context } from '../Context';
+import { VirtualObject } from '../utils/VirtualObject';
 
 export type PlayerConfig = {
     speed: number;
@@ -45,7 +45,6 @@ export class Player implements ISceneObject, ICollidable {
     private minVelocity = new Vector(1, 1).multiplyScalar(this.config.minSpeed);
     private bullets: Array<Bullet> = [];
 
-    private context: Context;
     private virtualObject: VirtualObject;
 
     sceneObjectId = 'player';
@@ -77,26 +76,25 @@ export class Player implements ISceneObject, ICollidable {
         SHOOT: keyPress(Key.Enter),
     };
 
-    constructor(x: number, y: number, context: Context) {
+    constructor(x: number, y: number) {
         this.position = new Vector(x, y);
         this.velocity = this.minVelocity.clone();
         this.direction = new Vector(1, 1);
         this.speed = 0;
         this.health = this.config.health;
         this.container = new Container();
-        this.context = context;
+        
+        this.setBounds(Context.bounds);
 
-        this.setBounds(this.context.bounds);
+        this.virtualObject = new VirtualObject(this, this.position);
 
-        this.virtualObject = new VirtualObject(this, this.position, context);
-
-        this.context.subscribeSceneObject(this);
-        this.context.subscribeGraphics(this.container);
-        this.context.subscribeCollidable(this);
+        Context.subscribeSceneObject(this);
+        Context.subscribeGraphics(this.container);
+        Context.subscribeCollidable(this);
     }
 
-    onCollide(source: ICollidable): void {
-        if (this.health <= 0) this.context.endGame();
+    onCollide(_: ICollidable): void {
+        if (this.health <= 0) Context.endGame();
 
         this.virtualObject.updateGraphics((sprite: Sprite) => {
             if (this.healthTint) sprite.tint = this.healthTint;
@@ -109,12 +107,11 @@ export class Player implements ISceneObject, ICollidable {
         return this.virtualObject;
     }
 
-    setBounds(bounds: Bounds) {
-        const boundsRect = bounds.getRectangle();
-
+    setBounds(bounds: Rectangle) {
+        console.log('BOUNDS', bounds);
         this.position.set(
-            boundsRect.x + boundsRect.width / 2,
-            boundsRect.y + boundsRect.height / 2
+            bounds.x + bounds.width / 2,
+            bounds.y + bounds.height / 2
         );
     }
 
@@ -172,8 +169,7 @@ export class Player implements ISceneObject, ICollidable {
                         .clone()
                         .addVector(this.direction.clone().multiplyScalar(50)),
                     this.direction.clone(),
-                    Math.max(this.velocity.length, this.config.speed),
-                    this.context
+                    Math.max(this.velocity.length, this.config.speed)
                 );
 
                 this.bullets.push(newBullet);

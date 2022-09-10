@@ -1,25 +1,19 @@
 import { DisplayObject, Graphics } from 'pixi.js';
-import { Context } from './Context';
-import { ICollidable, ISceneObject } from './Manager';
-import { Vector } from './math/Vector';
-import { VirtualObject } from './VirtualObject';
+import { Context } from '../Context';
+import { ICollidable, ISceneObject } from '../Manager';
+import { Vector } from '../math/Vector';
+import { VirtualObject } from '../utils/VirtualObject';
 
 export class Bullet implements ISceneObject, ICollidable {
     position!: Vector;
     private direction!: Vector;
     private size: number = 10;
-    private context!: Context;
     private virtualObject!: VirtualObject;
 
     alive = false;
 
-    constructor(
-        position: Vector,
-        direction: Vector,
-        speed: number = 10,
-        context: Context
-    ) {
-        this.init(position, direction, speed, context);
+    constructor(position: Vector, direction: Vector, speed: number = 10) {
+        this.init(position, direction, speed);
     }
 
     onCollide = (_: ICollidable): void => {
@@ -30,21 +24,15 @@ export class Bullet implements ISceneObject, ICollidable {
         return this.virtualObject;
     }
 
-    init(
-        position: Vector,
-        direction: Vector,
-        speed: number = 2,
-        context: Context
-    ) {
+    init(position: Vector, direction: Vector, speed: number = 2) {
         this.alive = true;
         this.position = position;
         this.direction = direction.normalize().multiplyScalar(speed);
         this.buildGraphics();
-        this.context = context;
-        this.virtualObject = new VirtualObject(this, this.position, context);
+        this.virtualObject = new VirtualObject(this, this.position);
 
-        this.context.subscribeSceneObject(this);
-        this.context.subscribeCollidable(this);
+        Context.subscribeSceneObject(this);
+        Context.subscribeCollidable(this);
     }
 
     buildGraphics() {
@@ -58,8 +46,8 @@ export class Bullet implements ISceneObject, ICollidable {
 
     deactivate() {
         this.alive = false;
-        this.context.unsubscribeSceneObject(this);
-        this.context.unsubscribeCollidable(this);
+        Context.unsubscribeSceneObject(this);
+        Context.unsubscribeCollidable(this);
         this.virtualObject.release();
     }
 

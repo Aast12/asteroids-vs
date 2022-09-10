@@ -1,42 +1,49 @@
-import { Bounds, Container, DisplayObject } from 'pixi.js';
-import GameScene from './Game';
+import { Bounds, Container, DisplayObject, Rectangle } from 'pixi.js';
+import GameScene from './scenes/Game';
 import { ICollidable, ISceneObject, SceneManager } from './Manager';
 import { Vector } from './math/Vector';
 import GameOverScene from './scenes/GameOver';
-import { VirtualObject } from './VirtualObject';
+import { VirtualObject } from './utils/VirtualObject';
 
 export class Context {
-    parentContainer: Container;
-    bounds!: Bounds;
-    private sceneObjects: Array<ISceneObject> = [];
-    private collidables: Array<ICollidable> = [];
+    static globalContainer: Container;
+    static bounds: Rectangle;
+    private static sceneObjects: Array<ISceneObject> = [];
+    private static collidables: Array<ICollidable> = [];
 
-    fieldWidth = window.screen.width;
-    fieldHeight = window.screen.height;
+    static fieldWidth = window.screen.width;
+    static fieldHeight = window.screen.height;
 
-    constructor() {
-        this.parentContainer = new Container();
+    static initialize(width: number, height: number): void {
+        Context.fieldWidth = width;
+        Context.fieldHeight = height;
+        Context.globalContainer = new Container();
+
+        Context.bounds = new Rectangle(0, 0, width, height);
     }
 
-    setBounds(bounds: Bounds) {
-        this.bounds = bounds;
+    public static setBounds(bounds: Rectangle) {
+        Context.bounds = bounds;
+        bounds.contains;
     }
 
-    isWithinBounds(position: Vector) {
-        if (!this.bounds) return true;
+    public static isWithinBounds(position: Vector) {
+        if (!Context.bounds) return true;
 
-        const { minX, maxX, minY, maxY } = this.bounds;
-        return (
-            position.x >= minX &&
-            position.x <= maxX &&
-            position.y >= minY &&
-            position.y <= maxY
-        );
+        return Context.bounds.contains(position.x, position.y);
+
+        // const { minX, maxX, minY, maxY } = Context.bounds;
+        // return (
+        //     position.x >= minX &&
+        //     position.x <= maxX &&
+        //     position.y >= minY &&
+        //     position.y <= maxY
+        // );
     }
 
-    detectCollisions() {
-        this.collidables.forEach((collidableA, index) => {
-            this.collidables.slice(index + 1).forEach((collidableB) => {
+    public static detectCollisions() {
+        Context.collidables.forEach((collidableA, index) => {
+            Context.collidables.slice(index + 1).forEach((collidableB) => {
                 const collision = VirtualObject.areColliding(
                     collidableA.getVirtualObject(),
                     collidableB.getVirtualObject()
@@ -50,50 +57,51 @@ export class Context {
         });
     }
 
-    endGame() {
-        SceneManager.changeScene(new GameOverScene(this));
+    public static endGame() {
+        SceneManager.changeScene(new GameOverScene());
     }
 
-    restartGame(){
-        this.parentContainer.destroy();
+    public static restartGame() {
+        Context.globalContainer.destroy();
+        Context.globalContainer = new Container();
         SceneManager.changeScene(new GameScene());
     }
 
-    update(deltaTime: number) {
-        this.sceneObjects.forEach((object) => {
+    public static update(deltaTime: number) {
+        Context.sceneObjects.forEach((object) => {
             object.update(deltaTime);
         });
-        this.detectCollisions();
+        Context.detectCollisions();
     }
 
-    subscribeCollidable = (collidable: ICollidable) => {
-        this.collidables.push(collidable);
+    public static subscribeCollidable = (collidable: ICollidable) => {
+        Context.collidables.push(collidable);
     };
 
-    subscribeSceneObject = (sceneObject: ISceneObject) => {
-        this.sceneObjects.push(sceneObject);
+    public static subscribeSceneObject = (sceneObject: ISceneObject) => {
+        Context.sceneObjects.push(sceneObject);
     };
 
-    subscribeGraphics = (graphics: DisplayObject) => {
-        this.parentContainer.addChild(graphics);
+    public static subscribeGraphics = (graphics: DisplayObject) => {
+        Context.globalContainer.addChild(graphics);
     };
 
-    unsubscribeCollidable = (collidable: ICollidable) => {
-        const objIndex = this.collidables.indexOf(collidable);
+    public static unsubscribeCollidable = (collidable: ICollidable) => {
+        const objIndex = Context.collidables.indexOf(collidable);
         if (objIndex > -1) {
-            this.collidables.splice(objIndex, 1);
+            Context.collidables.splice(objIndex, 1);
         }
     };
 
-    unsubscribeSceneObject = (sceneObject: ISceneObject) => {
-        const objIndex = this.sceneObjects.indexOf(sceneObject);
+    public static unsubscribeSceneObject = (sceneObject: ISceneObject) => {
+        const objIndex = Context.sceneObjects.indexOf(sceneObject);
         if (objIndex > -1) {
-            this.sceneObjects.splice(objIndex, 1);
+            Context.sceneObjects.splice(objIndex, 1);
         }
     };
 
-    unsubscribeGraphics = (graphics: DisplayObject) => {
-        const graphicsIndex = this.parentContainer.getChildIndex(graphics);
-        this.parentContainer.removeChildAt(graphicsIndex);
+    public static unsubscribeGraphics = (graphics: DisplayObject) => {
+        const graphicsIndex = Context.globalContainer.getChildIndex(graphics);
+        Context.globalContainer.removeChildAt(graphicsIndex);
     };
 }
