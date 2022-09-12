@@ -1,6 +1,7 @@
 import { Container, Rectangle, DisplayObject } from 'pixi.js';
 import { ISceneObject, ICollidable, SceneManager } from './Manager';
 import { Vector } from './math/Vector';
+import { Bullet } from './objects/Bullet';
 import GameScene from './scenes/Game';
 import GameOverScene from './scenes/GameOver';
 import { VirtualObject } from './utils/VirtualObject';
@@ -22,6 +23,16 @@ export class Context {
         Context.globalContainer = new Container();
 
         Context.bounds = new Rectangle(0, 0, width, height);
+    }
+
+    static roundCleanup() {
+        this.sceneObjects
+            .filter((obj) => obj instanceof Bullet)
+            .forEach((obj) => {
+                // @ts-ignore
+                obj.destroy();
+                // Context.unsubscribeCollidableSceneObject(obj);
+            });
     }
 
     private static cleanup() {

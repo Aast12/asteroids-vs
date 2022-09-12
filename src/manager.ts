@@ -75,6 +75,7 @@ export abstract class ParentScene extends Container {
 }
 export interface ISceneObject {
     buildGraphics(): DisplayObject;
+    destroy(): void;
     update(deltaTime: number): void;
 }
 

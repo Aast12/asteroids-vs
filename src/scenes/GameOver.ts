@@ -26,8 +26,6 @@ export default class GameOverScene extends Container implements IScene {
         endGameText.anchor.set(0.5, 0.5);
         endGameText.position.x = Context.fieldWidth / 2;
         endGameText.position.y = Context.fieldHeight / 2;
-        // endGameText.position.x = 0;
-        // endGameText.position.y = 0;
 
         const retryText = new Text('Start Over', {
             fontFamily: 'Arial',

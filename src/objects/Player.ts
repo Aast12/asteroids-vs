@@ -33,7 +33,13 @@ export const defaultPlayerConfig: PlayerConfig = {
     shootDelay: 500,
 };
 
-const keyPress = (key: Key | string) => () => Keyboard.isPressed(key);
+type KeyT = Key | string;
+
+const keyPress = (key: KeyT | Array<KeyT>) => {
+    if (key instanceof Array)
+        return () => key.some((keyOption) => Keyboard.isPressed(keyOption));
+    return () => Keyboard.isPressed(key);
+};
 
 export class Player implements ISceneObject, ICollidable {
     private isInteractive: boolean = false;
@@ -68,10 +74,10 @@ export class Player implements ISceneObject, ICollidable {
     }
 
     Input = {
-        MOVE_FORWARD: keyPress(Key.ArrowUp),
-        MOVE_BACKWARDS: keyPress(Key.ArrowDown),
-        ROTATE_LEFT: keyPress(Key.ArrowLeft),
-        ROTATE_RIGHT: keyPress(Key.ArrowRight),
+        MOVE_FORWARD: keyPress([Key.ArrowUp, 'w']),
+        MOVE_BACKWARDS: keyPress([Key.ArrowDown, 's']),
+        ROTATE_LEFT: keyPress([Key.ArrowLeft, 'a']),
+        ROTATE_RIGHT: keyPress([Key.ArrowRight, 'd']),
         SHOOT: keyPress(Key.Enter),
     };
 
@@ -92,6 +98,8 @@ export class Player implements ISceneObject, ICollidable {
         Context.subscribeGraphics(this.container);
         // Context.subscribeCollidable(this);
     }
+    
+    destroy(): void {}
 
     onCollide(source: ICollidable): void {
         if (!(source instanceof Bullet)) return;

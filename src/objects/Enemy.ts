@@ -80,20 +80,22 @@ export class Enemy implements ISceneObject, ICollidable {
         Context.subscribeCollidableSceneObject(this);
     }
 
+    destroy(): void {
+        this.virtualObject.release();
+        Context.unsubscribeCollidableSceneObject(this);
+    }
+
     onCollide(source: ICollidable): void {
         if (!(source instanceof Bullet)) return;
-
+        this.health--;
         if (this.health <= 0) {
-            this.virtualObject.release();
-            Context.unsubscribeCollidableSceneObject(this);
-            // Context.unsubscribeGraphics(this.container);
+            this.destroy();
+            return;
         }
 
         this.virtualObject.updateGraphics((sprite: Sprite) => {
             if (this.healthTint) sprite.tint = this.healthTint;
         });
-
-        this.health--;
     }
 
     getVirtualObject(): VirtualObject {

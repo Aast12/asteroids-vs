@@ -19,8 +19,6 @@ export default class GameScene extends Container implements IScene {
         this.addChild(this.fieldGraphics);
         this.getBounds();
 
-        // this.context.setBounds(this._bounds);
-
         this.player = new Player(10, 10);
         this.player.activate();
 
@@ -33,7 +31,10 @@ export default class GameScene extends Container implements IScene {
 
     private startRound() {
         const enemyCount = Math.min(
-            Math.ceil(this.currentRound / 5) + Math.round(Math.random()),
+            Math.max(
+                1,
+                Math.ceil(this.currentRound / 5) + Math.round(Math.random())
+            ),
             GameScene.maxEnemies
         );
 
@@ -49,6 +50,7 @@ export default class GameScene extends Container implements IScene {
 
     private endRound() {
         this.currentRound++;
+        Context.roundCleanup();
     }
 
     private buildMask() {
@@ -70,6 +72,7 @@ export default class GameScene extends Container implements IScene {
 
         this.enemies = this.enemies.filter((enemy) => enemy.health > 0);
         if (this.enemies.length == 0) {
+            console.log('AaAAAAA');
             this.endRound();
             this.startRound();
         }

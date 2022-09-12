@@ -16,8 +16,14 @@ export class Bullet implements ISceneObject, ICollidable {
         this.init(position, direction, speed);
     }
 
+    destroy(): void {
+        this.alive = false;
+        Context.unsubscribeCollidableSceneObject(this);
+        this.virtualObject.release();
+    }
+
     onCollide = (_: ICollidable): void => {
-        this.deactivate();
+        this.destroy();
     };
 
     getVirtualObject(): VirtualObject {
@@ -42,13 +48,6 @@ export class Bullet implements ISceneObject, ICollidable {
         graphics.endFill();
 
         return graphics;
-    }
-
-    deactivate() {
-        this.alive = false;
-        Context.unsubscribeSceneObject(this);
-        Context.unsubscribeCollidable(this);
-        this.virtualObject.release();
     }
 
     update(deltaTime: number): void {
