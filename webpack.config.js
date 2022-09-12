@@ -66,7 +66,7 @@ module.exports = (env, argv) => {
                 '.js'
             ],
             alias: {
-                "@app": "src/"
+                "@app": path.resolve(__dirname, "src")
             },
         },
 

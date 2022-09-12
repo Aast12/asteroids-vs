@@ -1,7 +1,7 @@
 import { Application, IApplicationOptions } from '@pixi/app';
 import { Container, DisplayObject } from '@pixi/display';
 import { Ticker } from 'pixi.js';
-import { VirtualObject } from './utils/VirtualObject';
+import { VirtualObject } from '@app/utils/VirtualObject';
 
 export class SceneManager {
     private constructor() {}

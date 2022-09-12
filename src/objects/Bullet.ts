@@ -1,8 +1,8 @@
+import { Context } from '@app/Context';
+import { ISceneObject, ICollidable } from '@app/Manager';
+import { Vector } from '@app/math/Vector';
+import { VirtualObject } from '@app/utils/VirtualObject';
 import { Graphics } from 'pixi.js';
-import { Context } from '../Context';
-import { ICollidable, ISceneObject } from '../Manager';
-import { Vector } from '../math/Vector';
-import { VirtualObject } from '../utils/VirtualObject';
 
 export class Bullet implements ISceneObject, ICollidable {
     position!: Vector;

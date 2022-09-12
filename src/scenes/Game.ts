@@ -1,12 +1,13 @@
+import { Context } from '@app/Context';
+import { IScene } from '@app/Manager';
+import { Vector } from '@app/math/Vector';
+import { Enemy } from '@app/objects/Enemy';
+import { Player } from '@app/objects/Player';
 import { Container, Graphics } from 'pixi.js';
-import { Vector } from '../math/Vector';
-import { Enemy } from '../objects/Enemy';
-import { Context } from '../Context';
-import { IScene } from '../Manager';
-import { Player } from '../objects/Player';
 
 export default class GameScene extends Container implements IScene {
     private player: Player;
+    // private enemies: Array<Enemy>;
     private fieldGraphics: Graphics = new Graphics();
 
     public constructor() {

@@ -1,9 +1,9 @@
-import { Container, DisplayObject, Rectangle } from 'pixi.js';
-import GameScene from './scenes/Game';
-import { ICollidable, ISceneObject, SceneManager } from './Manager';
-import { Vector } from './math/Vector';
-import GameOverScene from './scenes/GameOver';
-import { VirtualObject } from './utils/VirtualObject';
+import { Container, Rectangle, DisplayObject } from "pixi.js";
+import { ISceneObject, ICollidable, SceneManager } from "@app/Manager";
+import { Vector } from "@app/math/Vector";
+import GameScene from "@app/scenes/Game";
+import GameOverScene from "@app/scenes/GameOver";
+import { VirtualObject } from "@app/utils/VirtualObject";
 
 export class Context {
     static globalContainer: Container;
