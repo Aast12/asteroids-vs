@@ -47,7 +47,6 @@ export class Player implements ISceneObject, ICollidable {
 
     private virtualObject: VirtualObject;
 
-    sceneObjectId = 'player';
     velocity: Vector;
     direction: Vector;
     position: Vector;
@@ -88,12 +87,14 @@ export class Player implements ISceneObject, ICollidable {
 
         this.virtualObject = new VirtualObject(this, this.position);
 
-        Context.subscribeSceneObject(this);
+        Context.subscribeCollidableSceneObject(this);
+        // Context.subscribeSceneObject(this);
         Context.subscribeGraphics(this.container);
-        Context.subscribeCollidable(this);
+        // Context.subscribeCollidable(this);
     }
 
-    onCollide(_: ICollidable): void {
+    onCollide(source: ICollidable): void {
+        if (!(source instanceof Bullet)) return;
         if (this.health <= 0) Context.endGame();
 
         this.virtualObject.updateGraphics((sprite: Sprite) => {
@@ -189,6 +190,10 @@ export class Player implements ISceneObject, ICollidable {
 
     private bulletValidation() {
         this.bullets = this.bullets.filter((bullet) => bullet.alive);
+    }
+
+    get truePosition() {
+        return this.virtualObject.truePosition
     }
 
     update(deltaTime: number): void {

@@ -84,6 +84,13 @@ export class Context {
         Context.sceneObjects.push(sceneObject);
     };
 
+    public static subscribeCollidableSceneObject = (
+        object: ICollidable & ISceneObject
+    ) => {
+        Context.subscribeCollidable(object);
+        Context.subscribeSceneObject(object);
+    };
+
     public static subscribeGraphics = (graphics: DisplayObject) => {
         Context.globalContainer.addChild(graphics);
     };
@@ -102,8 +109,16 @@ export class Context {
         }
     };
 
+    public static unsubscribeCollidableSceneObject = (
+        object: ICollidable & ISceneObject
+    ) => {
+        Context.unsubscribeCollidable(object);
+        Context.unsubscribeSceneObject(object);
+    };
+
     public static unsubscribeGraphics = (graphics: DisplayObject) => {
         const graphicsIndex = Context.globalContainer.getChildIndex(graphics);
         Context.globalContainer.removeChildAt(graphicsIndex);
+        graphics.destroy();
     };
 }

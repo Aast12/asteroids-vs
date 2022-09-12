@@ -1,4 +1,6 @@
 import { Container, Graphics } from 'pixi.js';
+import { Vector } from '../math/Vector';
+import { Enemy } from '../objects/Enemy';
 import { Context } from '../Context';
 import { IScene } from '../Manager';
 import { Player } from '../objects/Player';
@@ -18,6 +20,8 @@ export default class GameScene extends Container implements IScene {
 
         this.player = new Player(10, 10);
         this.player.activate();
+
+        new Enemy(new Vector(200, 300), this.player);
 
         // Render graphic layers
         this.buildMask();

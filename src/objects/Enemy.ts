@@ -1,225 +1,215 @@
-// import { Bounds, Container, Sprite } from 'pixi.js';
-// import { Keyboard } from '../Keyboard';
-// import { ICollidable, ISceneObject } from '../Manager';
-// import { Vector } from '../math/Vector';
-// import { Key } from 'ts-key-enum';
-// import { Bullet } from './Bullet';
-// import { Context } from '../Context';
-// import { VirtualObject } from '../utils/VirtualObject';
-// import { Player } from './Player';
-// import { isThereCollision } from 'src/utils/utils';
+import { Container, Graphics, Rectangle, Sprite } from 'pixi.js';
+import { Keyboard } from '../Keyboard';
+import { ICollidable, ISceneObject } from '../Manager';
+import { Vector } from '../math/Vector';
+import { Key } from 'ts-key-enum';
+import { Bullet } from './Bullet';
+import { Context } from '../Context';
+import { VirtualObject } from '../utils/VirtualObject';
+import { Player } from './Player';
 
-// export type EnemyConfig = {
-//     speed: number;
-//     health: number;
-//     width: number;
-//     height: number;
-//     minSpeed: number;
-//     maxSpeed: number;
-//     degDelta: number;
-//     maxBullets: number;
-//     frictionFactor: number;
-//     shootDelay: number;
-// };
+export type EnemyConfig = {
+    speed: number;
+    health: number;
+    width: number;
+    height: number;
+    minSpeed: number;
+    maxSpeed: number;
+    degDelta: number;
+    maxBullets: number;
+    frictionFactor: number;
+    shootDelay: number;
+};
 
-// export const defaultEnemyConfig: EnemyConfig = {
-//     speed: 5,
-//     health: 3,
-//     width: 70,
-//     height: 50,
-//     minSpeed: 0.1,
-//     degDelta: (2 * Math.PI) / 100,
-//     maxBullets: 1,
-//     maxSpeed: 5,
-//     frictionFactor: 0.02,
-//     shootDelay: 500,
-// };
+export const defaultEnemyConfig: EnemyConfig = {
+    speed: 5,
+    health: 3,
+    width: 70,
+    height: 50,
+    minSpeed: 3,
+    degDelta: (2 * Math.PI) / 100,
+    maxBullets: 1,
+    maxSpeed: 5,
+    frictionFactor: 0.02,
+    shootDelay: 500,
+};
 
-// export class Enemy implements ISceneObject, ICollidable {
-//     private config: EnemyConfig = { ...defaultEnemyConfig };
+const keyPress = (key: Key | string) => () => Keyboard.isPressed(key);
 
-//     private spriteSource: string = 'warrior2.png';
-//     private container: Container;
+export class Enemy implements ISceneObject, ICollidable {
+    private isInteractive: boolean = false;
+    private config: EnemyConfig = { ...defaultEnemyConfig };
 
-//     private minVelocity = new Vector(1, 1).multiplyScalar(this.config.minSpeed);
-//     private bullets: Array<Bullet> = [];
+    private spriteSource: string = 'warrior2.png';
+    private container: Container;
 
-//     private context: Context;
-//     private virtualObject: VirtualObject;
+    private minVelocity = new Vector(1, 1).multiplyScalar(this.config.minSpeed);
+    private bullets: Array<Bullet> = [];
 
-//     private target: Player;
+    private virtualObject: VirtualObject;
 
-//     velocity: Vector;
-//     direction: Vector;
-//     position: Vector;
-//     speed: number;
-//     lastShoot?: number;
-//     health: number;
+    private target: Player;
+    private targetDistance: number = Infinity;
 
-//     get isAlive() {
-//         return this.health <= 0;
-//     }
+    velocity: Vector;
+    direction: Vector;
+    position: Vector;
+    speed: number;
+    lastShoot?: number;
+    health: number;
 
-//     get healthTint() {
-//         switch (this.health) {
-//             case 3:
-//                 return 0xe8cd31;
-//             case 2:
-//                 return 0xe88d31;
-//             case 1:
-//                 return 0xff0000;
-//         }
+    get healthTint() {
+        switch (this.health) {
+            case 3:
+                return 0xe8cd31;
+            case 2:
+                return 0xe88d31;
+            case 1:
+                return 0xff0000;
+        }
 
-//         return null;
-//     }
+        return null;
+    }
 
-//     constructor(position: Vector, target: Player, context: Context) {
-//         this.position = position.clone();
-//         this.velocity = this.minVelocity.clone();
-//         this.direction = new Vector(1, 1);
-//         this.speed = 0;
-//         this.health = this.config.health;
-//         this.container = new Container();
-//         this.context = context;
-//         this.target = target;
+    // dbg: Graphics;
 
-//         this.setBounds(this.context.bounds);
+    constructor(position: Vector, target: Player) {
+        this.position = position.clone();
+        this.velocity = this.minVelocity.clone();
+        this.direction = new Vector(1, 1);
+        this.speed = 0;
+        this.health = this.config.health;
+        this.target = target;
+        this.container = new Container();
 
-//         this.virtualObject = new VirtualObject(this, this.position, context);
+        // this.setBounds(Context.bounds);
+        // this.dbg = new Graphics();
 
-//         this.context.subscribeSceneObject(this);
-//         this.context.subscribeGraphics(this.container);
-//         this.context.subscribeCollidable(this);
-//     }
+        this.virtualObject = new VirtualObject(this, this.position);
 
-//     onCollide(source: ICollidable): void {
-//         if (source instanceof Bullet) {
-//             if (this.health <= 0) this.destroy();
+        // this.container.addChild(this.dbg)
+        Context.subscribeCollidableSceneObject(this);
+        // Context.subscribeGraphics(this.container);
+        // Context.subscribeGraphics(this.dbg);
+    }
 
-//             this.virtualObject.updateGraphics((sprite: Sprite) => {
-//                 if (this.healthTint) sprite.tint = this.healthTint;
-//             });
+    onCollide(source: ICollidable): void {
+        if (!(source instanceof Bullet)) return;
 
-//             this.health--;
-//         }
-//     }
+        if (this.health <= 0) {
+            this.virtualObject.release();
+            Context.unsubscribeCollidableSceneObject(this);
+            // Context.unsubscribeGraphics(this.container);
+        }
 
-//     destroy() {
-//         this.context.unsubscribeSceneObject(this);
-//         this.context.unsubscribeGraphics(this.container);
-//         this.context.unsubscribeCollidable(this);
-//         this.virtualObject.release();
-//     }
+        this.virtualObject.updateGraphics((sprite: Sprite) => {
+            if (this.healthTint) sprite.tint = this.healthTint;
+        });
 
-//     getVirtualObject(): VirtualObject {
-//         return this.virtualObject;
-//     }
+        this.health--;
+    }
 
-//     setBounds(bounds: Bounds) {
-//         const boundsRect = bounds.getRectangle();
+    getVirtualObject(): VirtualObject {
+        return this.virtualObject;
+    }
 
-//         this.position.set(
-//             boundsRect.x + boundsRect.width / 2,
-//             boundsRect.y + boundsRect.height / 2
-//         );
-//     }
+    setBounds(bounds: Rectangle) {
+        this.position.set(
+            bounds.x + bounds.width / 2,
+            bounds.y + bounds.height / 2
+        );
+    }
 
-//     buildGraphics = () => {
-//         const tmpSprite = Sprite.from(this.spriteSource);
-//         tmpSprite.width = this.config.width;
-//         tmpSprite.height = this.config.height;
+    buildGraphics = () => {
+        const tmpSprite = Sprite.from(this.spriteSource);
+        tmpSprite.width = this.config.width;
+        tmpSprite.height = this.config.height;
 
-//         return tmpSprite;
-//     };
+        return tmpSprite;
+    };
 
-//     activate() {
-//         this.isInteractive = true;
-//     }
+    activate() {
+        this.isInteractive = true;
+    }
 
-//     deactivate() {
-//         this.isInteractive = false;
-//     }
+    deactivate() {
+        this.isInteractive = false;
+    }
 
-//     private get unitaryDirection() {
-//         return this.direction.clone().normalize();
-//     }
+    private computeDirection() {
+        const closerCopy = this.target
+            .getVirtualObject()
+            .virtualCopies.sort((obja, objb) => {
+                const distA = this.position
+                    .clone()
+                    .subVector(
+                        new Vector(obja.position.x, obja.position.y)
+                    ).length;
+                const distB = this.position
+                    .clone()
+                    .subVector(
+                        new Vector(objb.position.x, objb.position.y)
+                    ).length;
 
-//     handleInput(deltaTime: number) {
-//         const { Input } = this;
-//         let degs = 0;
-//         if (Input.ROTATE_LEFT()) degs -= this.config.degDelta;
-//         if (Input.ROTATE_RIGHT()) degs += this.config.degDelta;
+                return distA - distB;
+            })[0];
 
-//         this.direction.rotate(degs);
-//         this.velocity.rotate(degs);
+        const closerCopyPos = new Vector(
+            closerCopy.position.x,
+            closerCopy.position.y
+        );
 
-//         if (Input.MOVE_BACKWARDS()) {
-//             this.velocity.addVector(
-//                 this.unitaryDirection.multiplyScalar(
-//                     -this.config.speed * deltaTime
-//                 )
-//             );
-//         }
-//         if (Input.MOVE_FORWARD()) {
-//             this.velocity.addVector(
-//                 this.unitaryDirection.multiplyScalar(
-//                     +this.config.speed * deltaTime
-//                 )
-//             );
-//         }
-//         if (Input.SHOOT()) {
-//             if (
-//                 !this.lastShoot ||
-//                 Date.now() - this.lastShoot > this.config.shootDelay
-//                 //this.bullets.length != this.config.maxBullets
-//             ) {
-//                 const newBullet = new Bullet(
-//                     this.position
-//                         .clone()
-//                         .addVector(this.direction.clone().multiplyScalar(50)),
-//                     this.direction.clone(),
-//                     Math.max(this.velocity.length, this.config.speed),
-//                     this.context
-//                 );
+        this.direction = closerCopyPos.subVector(this.position);
+        this.targetDistance = this.direction.length;
+        this.direction.normalize();
+    }
 
-//                 this.bullets.push(newBullet);
-//                 this.lastShoot = Date.now();
-//             }
-//         }
-//     }
+    private shoot() {
+        if (
+            !this.lastShoot ||
+            Date.now() - this.lastShoot > this.config.shootDelay
+        ) {
+            const newBullet = new Bullet(
+                this.virtualObject.truePosition
+                    .clone()
+                    .addVector(
+                        this.direction
+                            .clone()
+                            .multiplyScalar(
+                                Math.max(this.config.width, this.config.height)
+                            )
+                    ),
+                this.direction.clone(),
+                Math.max(this.velocity.length, this.config.speed)
+            );
 
-//     private bulletValidation() {
-//         this.bullets = this.bullets.filter((bullet) => bullet.alive);
-//     }
+            this.bullets.push(newBullet);
+            this.lastShoot = Date.now();
+        }
+    }
 
-//     update(deltaTime: number): void {
-//         if (!this.isAlive) return;
+    update(deltaTime: number): void {
+        this.computeDirection();
 
-//         if (this.velocity.length == 0) {
-//             this.velocity = this.direction
-//                 .clone()
-//                 .normalize()
-//                 .multiplyScalar(this.config.minSpeed);
-//         }
+        this.virtualObject.setRotation(this.direction.angle());
 
-//         this.handleInput(deltaTime);
+        if (this.velocity.length == 0) {
+            this.velocity = this.direction
+                .clone()
+                .normalize()
+                .multiplyScalar(this.config.minSpeed)
+                .multiplyScalar(deltaTime);
+        }
 
-//         if (this.velocity.length > this.config.maxSpeed) {
-//             this.velocity.normalize().multiplyScalar(this.config.maxSpeed);
-//         }
+        if (this.targetDistance < 400) {
+            this.shoot();
+        } else {
+            const mov = this.direction.clone().normalize().multiplyScalar(2);
+            this.position.addVector(mov);
 
-//         this.position.addVector(this.velocity);
-//         this.virtualObject.move(this.velocity);
+            this.virtualObject.move(mov);
+        }
 
-//         this.velocity.addVector(
-//             this.velocity
-//                 .clone()
-//                 .negate()
-//                 .multiplyScalar(this.config.frictionFactor)
-//         );
-
-//         this.virtualObject.setRotation(this.direction.angle());
-//         this.virtualObject.update();
-//         this.bulletValidation();
-//     }
-// }
+        this.virtualObject.update();
+    }
+}
