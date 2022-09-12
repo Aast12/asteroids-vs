@@ -32,12 +32,24 @@ export default class GameScene extends Container implements IScene {
     }
 
     private startRound() {
-        const roundTop = Math.ceil(this.currentRound / 5) + Math.ceil(Math.random() + 0.5);
-        const enemyCount = Math.max();
-        this.enemies = new Array();
+        const enemyCount = Math.min(
+            Math.ceil(this.currentRound / 5) + Math.round(Math.random()),
+            GameScene.maxEnemies
+        );
+
+        const { left, top, width, height } = Context.bounds;
+        const padding = 50;
+        this.enemies = new Array(enemyCount).fill(null).map((_) => {
+            const nx = Math.random() * (width - 2 * padding) + left + padding;
+            const ny = Math.random() * (height - 2 * padding) + top + padding;
+
+            return new Enemy(new Vector(nx, ny), this.player);
+        });
     }
 
-    private endRound() {}
+    private endRound() {
+        this.currentRound++;
+    }
 
     private buildMask() {
         this.mask = this.buildFieldGraphics();
@@ -48,12 +60,18 @@ export default class GameScene extends Container implements IScene {
         const height = Context.fieldHeight;
 
         return new Graphics()
-            .beginFill(0xff0000)
+            .beginFill(0)
             .drawRect(0, 0, width, height)
             .endFill();
     }
 
     update(deltaTime: number): void {
         Context.update(deltaTime);
+
+        this.enemies = this.enemies.filter((enemy) => enemy.health > 0);
+        if (this.enemies.length == 0) {
+            this.endRound();
+            this.startRound();
+        }
     }
 }

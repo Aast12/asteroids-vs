@@ -23,8 +23,8 @@ export type PlayerConfig = {
 export const defaultPlayerConfig: PlayerConfig = {
     speed: 5,
     health: 3,
-    width: 70,
-    height: 50,
+    width: 60,
+    height: 40,
     minSpeed: 0.1,
     degDelta: (2 * Math.PI) / 100,
     maxBullets: 1,
@@ -109,7 +109,6 @@ export class Player implements ISceneObject, ICollidable {
     }
 
     setBounds(bounds: Rectangle) {
-        console.log('BOUNDS', bounds);
         this.position.set(
             bounds.x + bounds.width / 2,
             bounds.y + bounds.height / 2

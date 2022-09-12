@@ -7,7 +7,7 @@ import { VirtualObject } from '../utils/VirtualObject';
 export class Bullet implements ISceneObject, ICollidable {
     position!: Vector;
     private direction!: Vector;
-    private size: number = 10;
+    private size: number = 7;
     private virtualObject!: VirtualObject;
 
     alive = false;

@@ -17,21 +17,21 @@ export type EnemyConfig = {
     maxSpeed: number;
     degDelta: number;
     maxBullets: number;
-    frictionFactor: number;
     shootDelay: number;
+    precisionFail: number;
 };
 
 export const defaultEnemyConfig: EnemyConfig = {
     speed: 5,
     health: 3,
-    width: 70,
-    height: 50,
+    width: 60,
+    height: 40,
     minSpeed: 3,
     degDelta: (2 * Math.PI) / 100,
     maxBullets: 1,
     maxSpeed: 5,
-    frictionFactor: 0.02,
-    shootDelay: 500,
+    shootDelay: 800,
+    precisionFail: Math.PI / 4,
 };
 
 const keyPress = (key: Key | string) => () => Keyboard.isPressed(key);
@@ -82,15 +82,9 @@ export class Enemy implements ISceneObject, ICollidable {
         this.target = target;
         this.container = new Container();
 
-        // this.setBounds(Context.bounds);
-        // this.dbg = new Graphics();
-
         this.virtualObject = new VirtualObject(this, this.position);
 
-        // this.container.addChild(this.dbg)
         Context.subscribeCollidableSceneObject(this);
-        // Context.subscribeGraphics(this.container);
-        // Context.subscribeGraphics(this.dbg);
     }
 
     onCollide(source: ICollidable): void {
@@ -179,7 +173,9 @@ export class Enemy implements ISceneObject, ICollidable {
                                 Math.max(this.config.width, this.config.height)
                             )
                     ),
-                this.direction.clone(),
+                this.direction
+                    .clone()
+                    .rotate(this.config.precisionFail * (Math.random() - 0.5)),
                 Math.max(this.velocity.length, this.config.speed)
             );
 
