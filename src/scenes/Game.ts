@@ -72,7 +72,6 @@ export default class GameScene extends Container implements IScene {
 
         this.enemies = this.enemies.filter((enemy) => enemy.health > 0);
         if (this.enemies.length == 0) {
-            console.log('AaAAAAA');
             this.endRound();
             this.startRound();
         }

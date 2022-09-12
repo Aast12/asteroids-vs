@@ -31,7 +31,6 @@ export class Context {
             .forEach((obj) => {
                 // @ts-ignore
                 obj.destroy();
-                // Context.unsubscribeCollidableSceneObject(obj);
             });
     }
 

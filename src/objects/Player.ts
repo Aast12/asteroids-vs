@@ -94,11 +94,9 @@ export class Player implements ISceneObject, ICollidable {
         this.virtualObject = new VirtualObject(this, this.position);
 
         Context.subscribeCollidableSceneObject(this);
-        // Context.subscribeSceneObject(this);
         Context.subscribeGraphics(this.container);
-        // Context.subscribeCollidable(this);
     }
-    
+
     destroy(): void {}
 
     onCollide(source: ICollidable): void {
@@ -170,7 +168,6 @@ export class Player implements ISceneObject, ICollidable {
             if (
                 !this.lastShoot ||
                 Date.now() - this.lastShoot > this.config.shootDelay
-                //this.bullets.length != this.config.maxBullets
             ) {
                 const newBullet = new Bullet(
                     this.position

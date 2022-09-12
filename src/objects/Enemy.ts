@@ -65,8 +65,6 @@ export class Enemy implements ISceneObject, ICollidable {
         return null;
     }
 
-    // dbg: Graphics;
-
     constructor(position: Vector, target: Player) {
         this.position = position.clone();
         this.velocity = this.minVelocity.clone();
