@@ -51,5 +51,5 @@ export default class GameOverScene extends Container implements IScene {
         this.addChild(retryText);
     }
 
-    update(deltaTime: number): void {}
+    update(_: number): void {}
 }

@@ -1,7 +1,5 @@
-import { Container, Sprite, Rectangle } from 'pixi.js';
-import { Key } from 'ts-key-enum';
+import { Sprite, Rectangle } from 'pixi.js';
 import { Context } from '../Context';
-import { Keyboard } from '../Keyboard';
 import { ISceneObject, ICollidable } from '../Manager';
 import { Vector } from '../math/Vector';
 import { VirtualObject } from '../utils/VirtualObject';
@@ -34,14 +32,10 @@ export const defaultEnemyConfig: EnemyConfig = {
     precisionFail: Math.PI / 4,
 };
 
-const keyPress = (key: Key | string) => () => Keyboard.isPressed(key);
-
 export class Enemy implements ISceneObject, ICollidable {
-    private isInteractive: boolean = false;
     private config: EnemyConfig = { ...defaultEnemyConfig };
 
     private spriteSource: string = 'warrior2.png';
-    private container: Container;
 
     private minVelocity = new Vector(1, 1).multiplyScalar(this.config.minSpeed);
     private bullets: Array<Bullet> = [];
@@ -80,7 +74,6 @@ export class Enemy implements ISceneObject, ICollidable {
         this.speed = 0;
         this.health = this.config.health;
         this.target = target;
-        this.container = new Container();
 
         this.virtualObject = new VirtualObject(this, this.position);
 
@@ -121,14 +114,6 @@ export class Enemy implements ISceneObject, ICollidable {
 
         return tmpSprite;
     };
-
-    activate() {
-        this.isInteractive = true;
-    }
-
-    deactivate() {
-        this.isInteractive = false;
-    }
 
     private computeDirection() {
         const closerCopy = this.target
