@@ -22,10 +22,11 @@
         "allowSyntheticDefaultImports": true,
         "experimentalDecorators": true,
 
-        // "baseUrl": "./",
-        // "paths": {
-        //     "@app/*": ["./src/*"]
-        // }
+        "baseUrl": "./",
+        "paths": {
+            "*": ["src/*"]
+            // "@app/*": ["./src/*"]
+        }
     },
 
     "include": ["./src/**/*"]
