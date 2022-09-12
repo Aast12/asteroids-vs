@@ -14,12 +14,22 @@ export class Context {
     static fieldWidth = window.screen.width;
     static fieldHeight = window.screen.height;
 
+    private constructor() {}
+
     static initialize(width: number, height: number): void {
         Context.fieldWidth = width;
         Context.fieldHeight = height;
         Context.globalContainer = new Container();
 
         Context.bounds = new Rectangle(0, 0, width, height);
+    }
+
+    private static cleanup() {
+        Context.globalContainer.removeAllListeners();
+        Context.globalContainer.destroy({ children: true });
+
+        Context.sceneObjects = [];
+        Context.collidables = [];
     }
 
     public static setBounds(bounds: Rectangle) {
@@ -31,14 +41,6 @@ export class Context {
         if (!Context.bounds) return true;
 
         return Context.bounds.contains(position.x, position.y);
-
-        // const { minX, maxX, minY, maxY } = Context.bounds;
-        // return (
-        //     position.x >= minX &&
-        //     position.x <= maxX &&
-        //     position.y >= minY &&
-        //     position.y <= maxY
-        // );
     }
 
     public static detectCollisions() {
@@ -62,8 +64,8 @@ export class Context {
     }
 
     public static restartGame() {
-        Context.globalContainer.destroy();
-        Context.globalContainer = new Container();
+        Context.cleanup();
+        Context.initialize(Context.fieldWidth, Context.fieldHeight);
         SceneManager.changeScene(new GameScene());
     }
 
