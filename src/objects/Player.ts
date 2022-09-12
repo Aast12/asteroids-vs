@@ -83,7 +83,7 @@ export class Player implements ISceneObject, ICollidable {
         this.speed = 0;
         this.health = this.config.health;
         this.container = new Container();
-        
+
         this.setBounds(Context.bounds);
 
         this.virtualObject = new VirtualObject(this, this.position);
@@ -167,7 +167,16 @@ export class Player implements ISceneObject, ICollidable {
                 const newBullet = new Bullet(
                     this.position
                         .clone()
-                        .addVector(this.direction.clone().multiplyScalar(50)),
+                        .addVector(
+                            this.direction
+                                .clone()
+                                .multiplyScalar(
+                                    Math.max(
+                                        this.config.width,
+                                        this.config.height
+                                    )
+                                )
+                        ),
                     this.direction.clone(),
                     Math.max(this.velocity.length, this.config.speed)
                 );
