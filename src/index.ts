@@ -1,7 +1,7 @@
-import { Context } from '@app/Context';
-import { Keyboard } from '@app/Keyboard';
-import { SceneManager } from '@app/Manager';
-import GameScene from '@app/scenes/Game';
+import { Context } from "./Context";
+import { Keyboard } from "./Keyboard";
+import { SceneManager } from "./Manager";
+import GameScene from "./scenes/Game";
 
 const setup = () => {
     Keyboard.initialize();

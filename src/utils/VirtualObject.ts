@@ -1,8 +1,8 @@
-import { Context } from "@app/Context";
-import { ISceneObject } from "@app/Manager";
-import { Vector } from "@app/math/Vector";
-import { Rectangle, DisplayObject, Container, Sprite } from "pixi.js";
-import { isThereCollision } from ".";
+import { Rectangle, DisplayObject, Container, Sprite } from 'pixi.js';
+import { isThereCollision } from '.';
+import { Context } from '../Context';
+import { ISceneObject } from '../Manager';
+import { Vector } from '../math/Vector';
 
 export class VirtualObject {
     private position: Vector;

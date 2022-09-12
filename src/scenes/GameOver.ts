@@ -1,6 +1,6 @@
-import { Context } from '@app/Context';
-import { IScene } from '@app/Manager';
 import { Container, Graphics, Text } from 'pixi.js';
+import { Context } from '../Context';
+import { IScene } from '../Manager';
 
 export default class GameOverScene extends Container implements IScene {
     constructor() {

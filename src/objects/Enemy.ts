@@ -1,12 +1,12 @@
-import { Context } from '@app/Context';
-import { Keyboard } from '@app/Keyboard';
-import { ISceneObject, ICollidable } from '@app/Manager';
-import { Vector } from '@app/math/Vector';
-import { VirtualObject } from '@app/utils/VirtualObject';
 import { Container, Sprite, Rectangle } from 'pixi.js';
 import { Key } from 'ts-key-enum';
-import { Bullet } from '@app/objects/Bullet';
-import { Player } from '@app/objects/Player';
+import { Context } from '../Context';
+import { Keyboard } from '../Keyboard';
+import { ISceneObject, ICollidable } from '../Manager';
+import { Vector } from '../math/Vector';
+import { VirtualObject } from '../utils/VirtualObject';
+import { Bullet } from './Bullet';
+import { Player } from './Player';
 
 export type EnemyConfig = {
     speed: number;
