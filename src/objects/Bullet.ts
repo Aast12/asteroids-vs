@@ -1,4 +1,4 @@
-import { DisplayObject, Graphics } from 'pixi.js';
+import { Graphics } from 'pixi.js';
 import { Context } from '../Context';
 import { ICollidable, ISceneObject } from '../Manager';
 import { Vector } from '../math/Vector';

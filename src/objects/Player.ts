@@ -1,4 +1,4 @@
-import { Bounds, Container, Rectangle, Sprite } from 'pixi.js';
+import { Container, Rectangle, Sprite } from 'pixi.js';
 import { Keyboard } from '../Keyboard';
 import { ICollidable, ISceneObject } from '../Manager';
 import { Vector } from '../math/Vector';

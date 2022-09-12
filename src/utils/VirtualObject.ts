@@ -1,4 +1,4 @@
-import { Bounds, Container, DisplayObject, Rectangle, Sprite } from 'pixi.js';
+import { Container, DisplayObject, Rectangle, Sprite } from 'pixi.js';
 import { Context } from '../Context';
 import { ISceneObject } from '../Manager';
 import { Vector } from '../math/Vector';
