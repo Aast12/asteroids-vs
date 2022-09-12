@@ -65,9 +65,9 @@ module.exports = (env, argv) => {
                 '.ts',
                 '.js'
             ],
-            alias: {
-                "@app": path.resolve(__dirname, "src")
-            },
+            // alias: {
+            //     "@app": path.resolve(__dirname, "src")
+            // },
         },
 
         plugins: [

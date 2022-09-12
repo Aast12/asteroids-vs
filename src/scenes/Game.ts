@@ -7,7 +7,9 @@ import { Player } from '../objects/Player';
 
 export default class GameScene extends Container implements IScene {
     private player: Player;
-    // private enemies: Array<Enemy>;
+    private enemies: Array<Enemy> = [];
+    private currentRound: number = 0;
+    private static maxEnemies: number = 10;
     private fieldGraphics: Graphics = new Graphics();
 
     public constructor() {
@@ -22,12 +24,20 @@ export default class GameScene extends Container implements IScene {
         this.player = new Player(10, 10);
         this.player.activate();
 
-        new Enemy(new Vector(200, 300), this.player);
-
         // Render graphic layers
         this.buildMask();
         this.addChild(Context.globalContainer);
+
+        this.startRound();
     }
+
+    private startRound() {
+        const roundTop = Math.ceil(this.currentRound / 5) + Math.ceil(Math.random() + 0.5);
+        const enemyCount = Math.max();
+        this.enemies = new Array();
+    }
+
+    private endRound() {}
 
     private buildMask() {
         this.mask = this.buildFieldGraphics();
