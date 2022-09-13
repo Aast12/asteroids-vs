@@ -5,6 +5,9 @@ export enum KeyState {
     PRESSED,
 }
 
+/**
+ * Clase para detectar la entrada del teclado
+ */
 export class Keyboard {
     private static state: Map<string, KeyState> = new Map<string, KeyState>();
 

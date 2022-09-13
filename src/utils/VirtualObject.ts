@@ -4,6 +4,15 @@ import { Context } from '../Context';
 import { ISceneObject } from '../Manager';
 import { Vector } from '../math/Vector';
 
+
+/**
+ * Clase para manejar la posición de un objeto en el escenario (toroide),
+ * acepta transformaciones en una posición y las traduce a una posición final
+ * que siempre esta dentro del escenario.
+ * 
+ * Maneja el renderizado del objeto correspondiente (e.g. mostrar la mitad del
+ * objeto en el borde opuesto del escenario cuanto se va a atravesar).
+ */
 export class VirtualObject {
     private position: Vector;
     private sourceObject: ISceneObject;

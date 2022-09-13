@@ -6,6 +6,10 @@ import GameScene from './scenes/Game';
 import GameOverScene from './scenes/GameOver';
 import { VirtualObject } from './utils/VirtualObject';
 
+/**
+ * Signleton para manejar información global de juego y manejar los
+ * objetos que se muestran en pantalla.
+ */
 export class Context {
     static globalContainer: Container;
     static bounds: Rectangle;

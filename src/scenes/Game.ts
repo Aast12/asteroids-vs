@@ -1,11 +1,14 @@
 import { Container, Graphics, Text } from 'pixi.js';
-import { getTextOfJSDocComment } from 'typescript';
 import { Context } from '../Context';
 import { IScene } from '../Manager';
 import { Vector } from '../math/Vector';
 import { Enemy } from '../objects/Enemy';
 import { Player } from '../objects/Player';
 
+/**
+ * Escena principal del juego. Maneja las rondas y la creación del juego
+ * y los enemigos.
+ */
 export default class GameScene extends Container implements IScene {
     private player: Player;
     private enemies: Array<Enemy> = [];
@@ -96,7 +99,10 @@ export default class GameScene extends Container implements IScene {
         }
 
         this.enemies = this.enemies.filter((enemy) => enemy.health > 0);
-        if (!this.inRound && Date.now() - this.endRoundTime > 500)
+        if (
+            !this.inRound &&
+            Date.now() - this.endRoundTime > GameScene.roundWaitTime
+        )
             this.startRound();
 
         if (this.enemies.length == 0 && this.inRound) this.endRound();

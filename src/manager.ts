@@ -3,10 +3,12 @@ import {
     IApplicationOptions,
     Ticker,
     DisplayObject,
-    Container,
 } from 'pixi.js';
 import { VirtualObject } from './utils/VirtualObject';
 
+/**
+ * Manejador de escenas del juego, permite cambiar escenas y actualizar su estado.
+ */
 export class SceneManager {
     private constructor() {}
 
@@ -64,21 +66,32 @@ export class SceneManager {
     }
 }
 
+/**
+ * Interfaz de escena, como único atributo es una función que actualiza
+ * la información de los objetos de la escena.
+ */
 export interface IScene extends DisplayObject {
     update(deltaTime: number): void;
 }
 
-export abstract class ParentScene extends Container {
-    protected subscribeObject = ((object: DisplayObject) => {
-        this.addChild(object);
-    }).bind(this);
-}
+/**
+ * Interfaz para objetos de la escena, fuerza metodos para actualizar su
+ * estado y eliminarse apropiadamente.
+ *
+ * Tiene la intención de utilizarse en conjunto con VirtualObject.
+ * buildGraphics define como se construyen los gráficos para un objeto
+ * y estos puedan ser generados por la clase de VirtualObject.
+ */
 export interface ISceneObject {
     buildGraphics(): DisplayObject;
     destroy(): void;
     update(deltaTime: number): void;
 }
 
+/**
+ * Interfaz para definir los objetos que se utilizarán en la detección de
+ * colisiones.
+ */
 export interface ICollidable {
     onCollide(source: ICollidable): void;
     getVirtualObject(): VirtualObject;

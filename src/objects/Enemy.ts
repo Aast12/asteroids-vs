@@ -116,6 +116,7 @@ export class Enemy implements ISceneObject, ICollidable {
     };
 
     private computeDirection() {
+        // Obtiene la distancia más corta hacia el jugador
         const closerCopy = this.target
             .getVirtualObject()
             .virtualCopies.sort((obja, objb) => {
