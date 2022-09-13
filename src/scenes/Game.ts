@@ -86,7 +86,7 @@ export default class GameScene extends Container implements IScene {
         const height = Context.fieldHeight;
 
         return new Graphics()
-            .beginFill(0)
+            .beginFill(0x05151f)
             .drawRect(0, 0, width, height)
             .endFill();
     }

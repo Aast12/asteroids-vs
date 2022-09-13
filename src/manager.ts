@@ -77,7 +77,7 @@ export interface IScene extends DisplayObject {
 /**
  * Interfaz para objetos de la escena, fuerza metodos para actualizar su
  * estado y eliminarse apropiadamente.
- *
+ * 
  * Tiene la intención de utilizarse en conjunto con VirtualObject.
  * buildGraphics define como se construyen los gráficos para un objeto
  * y estos puedan ser generados por la clase de VirtualObject.
@@ -87,6 +87,7 @@ export interface ISceneObject {
     destroy(): void;
     update(deltaTime: number): void;
 }
+
 
 /**
  * Interfaz para definir los objetos que se utilizarán en la detección de
