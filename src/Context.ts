@@ -9,6 +9,7 @@ import { VirtualObject } from './utils/VirtualObject';
 export class Context {
     static globalContainer: Container;
     static bounds: Rectangle;
+    static gameFont = 'VT323';
     private static sceneObjects: Array<ISceneObject> = [];
     private static collidables: Array<ICollidable> = [];
 

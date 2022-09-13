@@ -16,22 +16,20 @@ export default class GameOverScene extends Container implements IScene {
 
         this.addChild(bg);
 
-        const endGameText = new Text('Game Over', {
-            fontFamily: 'Arial',
-            fontSize: 48,
+        const endGameText = new Text('Juego Terminado', {
+            fontFamily: Context.gameFont,
+            fontSize: 56,
             fill: 0xffffff,
-            fontWeight: 'bold',
         });
 
         endGameText.anchor.set(0.5, 0.5);
         endGameText.position.x = Context.fieldWidth / 2;
         endGameText.position.y = Context.fieldHeight / 2;
 
-        const retryText = new Text('Start Over', {
-            fontFamily: 'Arial',
-            fontSize: 24,
+        const retryText = new Text('Empezar de nuevo', {
+            fontFamily: Context.gameFont,
+            fontSize: 32,
             fill: 0xffffff,
-            fontWeight: 'bold',
         });
 
         retryText.anchor.set(0.5, 0.5);
